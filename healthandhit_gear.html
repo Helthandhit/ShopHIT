@@ -1,986 +1,479 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta charset="utf-8"/>
-<title>HealthAndHIT Gear</title>
-<style>
-    body { overflow-x: hidden;  font-family: sans-serif; background: #2b2b2b; color: white; margin: 0; padding: 0; }
-    h1 { text-align: center; color: #d00000; margin: 20px; }
-    .category { padding: 15px; }
-    .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .product {
-      border: 1px solid #ddd;
-      padding: 15px;
-      background: #2b2b2b;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HealthAndHIT Gear</title>
+  <style>
+    body { font-family: 'Poppins', Arial, sans-serif; background: #2b2b2b; color: #fff; margin: 0; }
+    h1 { text-align: center; color: #ff3939; margin: 28px 0 16px; font-size: 2em; }
+    .category { margin: 0 auto 24px auto; max-width: 1100px; padding: 18px 8px; }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      justify-items: center;
     }
-    img { max-width: 100%; height: auto; border-radius: 6px; }
-    select, button, input {
+    .product, .coming-soon {
+      background: #23232b;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px #0005;
+      border: 1.5px solid #353545;
+      max-width: 290px;
+      min-width: 210px;
+      min-height: 390px;
+      height: 100%;
+      padding: 18px 14px 16px 14px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transition: box-shadow .14s, transform .12s;
+      position: relative;
+    }
+    .product:hover { box-shadow: 0 5px 32px #0008; transform: translateY(-2px) scale(1.04);}
+    .product img, .coming-soon img {
       width: 100%;
-      padding: 12px;
+      min-height: 120px;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: #19191f;
+      margin-bottom: 10px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+    .product .options, .coming-soon .options {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       margin-top: 10px;
-      border: 1px solid #aaa;
-      border-radius: 6px;
-      font-size: 16px;
+      margin-bottom: auto;
     }
-    button { background: #d00000; color: #fff; font-weight: bold; border: none; }
+    .options select, .options input, .options button { width: 100%; font-size: 16px; padding: 10px; border-radius: 6px; margin-bottom: 4px;}
+    button { background: linear-gradient(90deg, #ff2727 60%, #d00000 100%); color: #fff; font-weight: 600; border: none; border-radius: 8px; padding: 10px 0; margin-top: 6px; box-shadow: 0 2px 8px #d0000030; }
     button:active { background: #a00000; }
-    .checkout-form { padding: 20px; }
-    .total, .checkout h2 { font-size: 18px; font-weight: bold; margin-top: 20px; }
-    #basket { background: #3a3a3a; padding: 15px; margin: 20px; border-radius: 10px; }
-    .remove-btn {
-      background: #ff4444;
-      padding: 6px 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      margin-left: 10px;
-      border: none;
-      color: white;
+    .remove-btn { background: #1c1c1c !important; color: #ffbaba; font-size: 1.1em; padding: 7px 0 !important; border-radius: 10px !important; width: 34px !important; margin-left: 10px;}
+    .remove-btn:hover { background: #ff4444 !important; color: #fff;}
+    .product p, .coming-soon p { font-size: 1.09em; margin: 6px 0 0 0;}
+    .product .coming-label, .coming-soon .coming-label {
+      background: #444; color: #ffbebe; padding: 6px 13px;
+      border-radius: 8px; font-size: 1.1em; letter-spacing: 1px;
+      font-weight: 600; margin-top: 20px;
     }
-    .qty { width: 80px; margin-top: 10px; }
-  
-.product {
-  border: 1px solid #444;
-  padding: 15px;
-  background: #1e1e1e;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  width: 100%;
-  max-width: 360px;
-  margin: auto;
-}
-.options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-}
-.options select, .options input, .options button {
-  width: 100%;
-  font-size: 16px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-.products {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.product img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.options { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.product img { width: 100%; height: auto; border-radius: 8px; cursor: pointer; }
-.lightbox {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
-  justify-content: center;
-  align-items: center;
-}
-.lightbox img {
-  max-width: 90vw;
-  max-height: 90vh;
-}
-.lightbox:target {
-  display: flex;
-}
-.payment-logos {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-  justify-content: center;
-}
-.payment-logos img {
-  height: 30px;
-}
-.discount {
-  margin-top: 20px;
-  padding: 10px;
-  background: #1c1c1c;
-  border-radius: 8px;
-}
-.discount input {
-  width: 60%;
-  padding: 10px;
-  margin-right: 10px;
-  border-radius: 6px;
-}
-.discount button {
-  background: #444;
-  padding: 10px;
-}
-
-.product {
-  position: relative;
-}
-
-.share-inline {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0.85;
-  z-index: 10;
-
-  display: none;
-  position: absolute;
-  right: 10px;
-  bottom: 15px;
-  width: 28px;
-  cursor: pointer;
-}
-.product:hover 
-.share-inline {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  bottom: 10px;
-  right: 10px;
-  opacity: 0.85;
-  z-index: 10;
-
-  display: block;
-}
-
-.product {
-  position: relative;
-}
-.product img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-.img-wrapper {
-  position: relative;
-}
-.img-wrapper img.share-inline {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  bottom: 8px;
-  right: 8px;
-  opacity: 0.85;
-  z-index: 10;
-  cursor: pointer;
-}
-
-
-.lightbox-share {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 160px;
-  height: 160px;
-  opacity: 0.95;
-  z-index: 1001;
-  cursor: pointer;
-}
-.lightbox {
-  position: fixed;
-  z-index: 1000;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0,0,0,0.9);
-}
-
-#order-confirm {
-  display: none;
-  position: fixed;
-  z-index: 2000;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #1a1a1a;
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px black;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-}
-#order-confirm h3 {
-  margin-top: 0;
-  color: #00ff88;
-}
-#order-confirm button {
-  margin-top: 20px;
-  background: #d00000;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-}
-
-
-
-.profile-controls {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 10px 0 0 0;
-}
-.profile-controls label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: white;
-  font-size: 14px;
-}
-.clear-profile {
-  background: #222;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-.clear-profile:hover {
-  background: #000;
-}
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-.profile-controls input[type="checkbox"] {
-  transform: scale(1.2);
-}
-.clear-profile {
-  margin-top: 10px;
-  background: #444;
-  padding: 10px;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.remove-btn {
-  background: black !important;
-  color: white;
-  font-size: 20px;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  width: 100%;
-  cursor: pointer;
-}
-.remove-btn:hover {
-  background: #222;
-}
-body, input, button, select {
-  font-family: 'Poppins', 'Roboto', Arial, sans-serif !important;
-}
-
-h1, h2, h3 {
-  letter-spacing: 1px;
-}
-
-h1 {
-  font-size: 2em;
-  font-weight: 700;
-}
-
-.category {
-  margin: 0 auto 24px auto;
-  max-width: 900px;
-  padding: 20px 8px;
-}
-
-.products {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  justify-content: center;
-}
-
-.product {
-  background: #23232b;
-  border: 1.5px solid #353545;
-  border-radius: 16px;
-  box-shadow: 0 3px 18px #0005;
-  padding: 18px 14px 16px 14px;
-  margin: 0;
-  max-width: 290px;
-  min-width: 220px;
-  transition: box-shadow .15s, transform .12s;
-}
-.product:hover {
-  box-shadow: 0 5px 32px #0008;
-  transform: translateY(-2px) scale(1.03);
-}
-
-.product img {
-  margin-bottom: 10px;
-  border-radius: 10px;
-  background: #19191f;
-}
-
-.options button, .product button {
-  background: linear-gradient(90deg, #ff2727 60%, #d00000 100%);
-  color: #fff;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 0;
-  margin-top: 6px;
-  box-shadow: 0 2px 8px #d0000030;
-  transition: background .15s, box-shadow .15s;
-}
-.product button:active, .options button:active {
-  background: #a00000;
-  box-shadow: none;
-}
-
-input[type="number"], input[type="text"], input[type="email"], select {
-  background: #18181c;
-  border: 1px solid #444;
-  color: #fff;
-  border-radius: 6px;
-  padding: 12px 10px;
-  font-size: 1em;
-  margin-top: 8px;
-  margin-bottom: 3px;
-  outline: none;
-  box-shadow: 0 1px 4px #0003;
-}
-input:focus, select:focus {
-  border-color: #ff4444;
-}
-
-.remove-btn {
-  background: linear-gradient(90deg, #d00000 60%, #900000 100%) !important;
-  color: #fff;
-  font-size: 1.15em;
-  padding: 7px 0 !important;
-  border-radius: 14px !important;
-  width: 38px !important;
-  margin-left: 12px;
-  transition: background .13s;
-}
-.remove-btn:hover {
-  background: #ff4444 !important;
-}
-
-#basket, .checkout-form, #basketModal, #order-confirm {
-  background: #23232b;
-  border-radius: 14px;
-  box-shadow: 0 2px 14px #0006;
-  margin: 22px auto 24px auto;
-  max-width: 420px;
-  padding: 18px 16px;
-}
-
-#basket h3, .checkout h2 {
-  color: #ff4545;
-  letter-spacing: 1px;
-}
-
-.total, #basket-total, #credit-balance {
-  font-size: 1.15em;
-  margin: 6px 0 0 0;
-  font-weight: 600;
-}
-#credit-balance {
-  color: #ffd700 !important; /* gold not neon */
-}
-#basket-total {
-  color: #35e8c2;
-}
-
-label, .checkout-form label {
-  color: #ffbebd;
-  font-size: 1em;
-}
-
-input::placeholder {
-  color: #777;
-  opacity: .9;
-}
-
-#order-confirm {
-  background: #101016 !important;
-  color: #fff;
-  border-radius: 18px;
-  border: 1.5px solid #ff4545;
-  box-shadow: 0 0 25px #0008;
-}
-#order-confirm button {
-  border-radius: 8px;
-  margin-top: 18px;
-  font-size: 1.1em;
-  background: #d00000;
-}
-
-#basketModal {
-  backdrop-filter: blur(3px);
-  background: #242433e8 !important;
-}
-
-.lightbox {
-  background: rgba(18, 18, 26, 0.96);
-}
-.lightbox:after {
-  content: '×';
-  position: absolute;
-  top: 16px; right: 24px;
-  font-size: 2.3em;
-  color: #ff4545;
-  cursor: pointer;
-  z-index: 1002;
-  font-weight: 700;
-}
-.lightbox[style*="display: flex"]::after {
-  display: block;
-}
-
-@media (max-width: 700px) {
-  .products { flex-direction: column; }
-  .product { max-width: 96vw; min-width: 180px; }
-  #basket, .checkout-form { max-width: 96vw; }
-}
-
-</style>
+    .coming-soon {
+      opacity: 0.5;
+      background: #222228;
+      border: 1.5px dashed #707087;
+      pointer-events: none;
+    }
+    .coming-soon img { filter: grayscale(100%) brightness(1.2); }
+    /* Responsive */
+    @media (max-width: 1100px) { .category { max-width: 98vw; } }
+    @media (max-width: 950px) {
+      .products { grid-template-columns: repeat(2, 1fr);}
+    }
+    @media (max-width: 700px) {
+      .products { grid-template-columns: 1fr; }
+      .product, .coming-soon { max-width: 95vw; min-width: 160px;}
+    }
+    /* Order Modal Popup */
+    #order-confirm-bg {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(24,24,24,0.85);
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    #order-confirm {
+      background: #181824;
+      color: #fff;
+      border-radius: 18px;
+      border: 2px solid #ff3939;
+      box-shadow: 0 0 42px #000b;
+      width: 94vw;
+      max-width: 420px;
+      max-height: 92vh;
+      padding: 28px 18px 20px 18px;
+      overflow-y: auto;
+      text-align: center;
+      position: relative;
+      animation: popin .18s cubic-bezier(.77,0,.18,1.09);
+    }
+    @keyframes popin {
+      0% { transform: scale(0.94) translateY(30px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1;}
+    }
+    #order-confirm h3 { margin-top: 0; color: #1fff99; }
+    #order-summary {
+      background: #19191f;
+      color: #fff;
+      padding: 13px 11px;
+      border-radius: 8px;
+      font-size: 1em;
+      max-height: 200px;
+      overflow: auto;
+      text-align: left;
+      margin-bottom: 10px;
+      border: 1px solid #232340;
+    }
+    #order-confirm .payment-section {
+      margin: 12px 0 12px 0;
+      background: #242444;
+      border-radius: 8px;
+      padding: 12px 8px;
+      font-size: 1.1em;
+      line-height: 1.5;
+    }
+    #order-confirm .payment-section a {
+      color: #1fffd7;
+      font-weight: bold;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    #order-confirm .payment-section .gpay {
+      color: #00ffae;
+      font-weight: bold;
+    }
+    #order-confirm .modal-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 13px;
+      margin-top: 18px;
+    }
+    #order-confirm .modal-buttons button {
+      font-size: 1em;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      padding: 12px 20px;
+      background: linear-gradient(90deg,#ff3939,#d00000 75%);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+    #order-confirm .modal-buttons button:active { background: #b30000; }
+    #order-confirm .close-x {
+      position: absolute;
+      right: 15px; top: 8px;
+      font-size: 1.6em;
+      color: #ff4545;
+      cursor: pointer;
+      font-weight: bold;
+      opacity: 0.75;
+    }
+    #order-confirm .close-x:hover { opacity: 1; color: #fff;}
+    @media (max-width: 480px) {
+      #order-confirm { max-width: 99vw; padding: 10px 3vw; }
+      #order-summary { font-size: .98em;}
+      #order-confirm .modal-buttons button { padding: 11px 5vw;}
+    }
+  </style>
 </head>
 <body>
 <h1>HealthAndHIT Gear</h1>
 <div class="category">
-
-<div class="products">
-<div class="product">
-<img alt="Towel" src="towel.jpg"/>
-<p>Quick Dry Towel – £10</p>
-<input class="qty" id="qty-towel" min="1" placeholder="Qty" type="number" value="1"/>
-<button onclick="addToBasket('Towel', 10,  null, 'qty-towel')">Add to Basket</button>
+  <div class="products">
+    <div class="product">
+      <img alt="Towel" src="towel.jpg"/>
+      <p>Quick Dry Towel – £10</p>
+      <div class="options">
+        <input class="qty" id="qty-towel" min="1" placeholder="Qty" type="number" value="1"/>
+        <button onclick="addToBasket('Towel', 10,  null, 'qty-towel')">Add to Basket</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Vest" src="vest.png"/>
+      <p>Vest – £18</p>
+      <div class="options">
+        <select id="size-vest"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+        <input id="qty-vest" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Vest', 18, 'size-vest', 'qty-vest')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Cap" src="cap.png"/>
+      <p>Cap – £15</p>
+      <div class="options">
+        <input id="qty-cap" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Cap', 15, null, 'qty-cap')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Jumper" src="jumper.png"/>
+      <p>Jumper – £35</p>
+      <div class="options">
+        <select id="size-jumper"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+        <input id="qty-jumper" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Jumper', 35, 'size-jumper', 'qty-jumper')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Hoodie" src="hoodie.png"/>
+      <p>Hoodie – £38</p>
+      <div class="options">
+        <select id="size-hoodie"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+        <input id="qty-hoodie" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Hoodie', 38, 'size-hoodie', 'qty-hoodie')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Sublimated Cap" src="subcap.png"/>
+      <p>Sublimated Cap – £20</p>
+      <div class="options">
+        <select id="size-subcap"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+        <input id="qty-subcap" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Sublimated Cap', 20, 'size-subcap', 'qty-subcap')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Mug" src="mug.png"/>
+      <p>Mug – £12</p>
+      <div class="options">
+        <input id="qty-mug" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Mug', 12, null, 'qty-mug')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Bottle" src="bottle.png"/>
+      <p>Bottle – £15</p>
+      <div class="options">
+        <input id="qty-bottle" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Bottle', 15, null, 'qty-bottle')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Keyring" src="keyring.png"/>
+      <p>Keyring – £5</p>
+      <div class="options">
+        <input id="qty-keyring" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Keyring', 5, null, 'qty-keyring')">Add</button>
+      </div>
+    </div>
+    <div class="product">
+      <img alt="Gym Bag" src="gymbag.png"/>
+      <p>Gym Bag – £12</p>
+      <div class="options">
+        <input id="qty-gymbag" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('Gym Bag', 12, null, 'qty-gymbag')">Add</button>
+      </div>
+    </div>
+    <!-- 4 "Coming Soon" boxes -->
+    <div class="coming-soon">
+      <img src="beaker.png" alt="Coming Soon"/>
+      <p>Beaker</p>
+      <div class="options"></div>
+      <span class="coming-label">Coming Soon</span>
+    </div>
+    <div class="coming-soon">
+      <img src="paypal.png" alt="Coming Soon"/>
+      <p>Gift Voucher</p>
+      <div class="options"></div>
+      <span class="coming-label">Coming Soon</span>
+    </div>
+    <div class="coming-soon">
+      <img src="bag-2.png" alt="Coming Soon"/>
+      <p>Large Gym Bag</p>
+      <div class="options"></div>
+      <span class="coming-label">Coming Soon</span>
+    </div>
+    <div class="coming-soon">
+      <img src="teddy.png" alt="Coming Soon"/>
+      <p>Custom Teddy</p>
+      <div class="options"></div>
+      <span class="coming-label">Coming Soon</span>
+    </div>
+  </div>
 </div>
 
+<div id="basket">
+  <h3>Your Basket</h3>
+  <ul id="basket-list"></ul>
+  <button onclick="emptyBasket()">🗑️ Empty Basket</button>
+  <p class="total">Shipping: £<span id="shipping-cost">0.00</span></p>
+  <p class="total" id="basket-total">Total: £0</p>
+  <label for="shipping">🚐 Shipping Method:</label>
+  <select id="shipping" onchange="updateBasketDisplay()">
+    <option value="0">Local Pickup – £0 (ASAP)</option>
+    <option value="3.99">UK Standard – £3.99 (2–4 days)</option>
+    <option value="6.99">Express – £6.99 (Next Day)</option>
+  </select>
+  <div style="background:#1f1f1f;color:#ffcc00;padding:10px;margin-top:15px;border-radius:8px;">
+    ⚠️ <strong>Please Note:</strong><br/>All items are handmade or customised to order.<br/>🕒 <strong>Please allow time for your item to be built and dispatched.</strong>
+    <br/><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:bold;">
+      <input id="stockAgree" required type="checkbox"/> I understand items are made to order and may vary or require extra build time.
+    </label>
+  </div>
 </div>
-<div class="category">
 
-<div class="products">
-
+<div class="checkout">
+  <h2>Checkout</h2>
+  <div class="checkout-form">
+    <input id="name" placeholder="Full Name" required type="text">
+    <input id="email" placeholder="Email" required type="email"/>
+    <input id="phone" placeholder="Phone Number" required type="text"/>
+    <input id="address1" placeholder="Street Address" required type="text"/>
+    <input id="address2" placeholder="Town/City" required type="text"/>
+    <input id="postcode" placeholder="Postcode" required type="text"/>
+    <div class="profile-controls">
+      <label><input id="saveProfile" type="checkbox"/> Save for future purchases</label>
+      <button class="clear-profile" type="button" onclick="clearProfile()">❌ Remove all saved details</button>
+    </div>
+    <br>
+    <button type="button" onclick="handleCheckout()">Place Order</button>
+  </div>
 </div>
 
-
-<div id="payment-info" style="display:none; padding: 20px; background: #e7ffe7; border: 1px solid #b3ffb3; border-radius: 10px; margin: 20px;">
-<h3>✔️ Order Sent!</h3>
-<p>Your basket has been cleared.</p>
-<p>Please send payment via:</p>
-<ul>
-<li><b>Google Pay:</b> healthandhit@gmail.com</li>
-<li><b>PayPal:</b> <a href="https://&lt;span id=" paypal-link"="">paypal.me/healthandhit" target="_blank"&gt;<span id="paypal-link">paypal.me/healthandhit</span></a></li>
-</ul>
+<!-- Popup Modal for Order Summary & Payment -->
+<div id="order-confirm-bg">
+  <div id="order-confirm">
+    <span class="close-x" onclick="closeOrderModal()">&times;</span>
+    <h3>Order Summary</h3>
+    <pre id="order-summary"></pre>
+    <div class="payment-section">
+      <strong>Payment Options:</strong><br>
+      PayPal: <a href="https://paypal.me/healthandhit" target="_blank">paypal.me/healthandhit</a><br>
+      Google Pay: <span class="gpay">healthandhit@gmail.com</span>
+    </div>
+    <div class="modal-buttons">
+      <button id="copyAndEmailBtn" onclick="copyOrderAndEmail()">Copy Order &amp; Email</button>
+      <button id="payNowBtn" style="display:none;" onclick="window.open('https://paypal.me/healthandhit','_blank');">Pay Now (PayPal)</button>
+      <button onclick="closeOrderModal()">Close</button>
+    </div>
+    <div style="color:#ccc;font-size:0.93em;margin-top:12px;">(Copy order, email to <span style="color:#1fffd7">healthandhit@gmail.com</span> and pay!)</div>
+  </div>
 </div>
+
 <script>
-    let basket = JSON.parse(localStorage.getItem("basket")) || [];
+  let basket = JSON.parse(localStorage.getItem("basket")) || [];
 
-    function addToBasket(name, price, sizeId, qtyId) {
-      const size = sizeId ? document.getElementById(sizeId).value : null;
-      const qty = qtyId ? parseInt(document.getElementById(qtyId).value) || 1 : 1;
-      if (sizeId && size === 'Size') {
-        alert('Please select a size.');
-        return;
-      }
-      basket.push({ name, price, size, qty });
-      localStorage.setItem('basket', JSON.stringify(basket));
+  function addToBasket(name, price, sizeId, qtyId) {
+    const size = sizeId ? document.getElementById(sizeId).value : null;
+    const qty = qtyId ? parseInt(document.getElementById(qtyId).value) || 1 : 1;
+    if (sizeId && size === 'Size') {
+      alert('Please select a size.');
+      return;
+    }
+    basket.push({ name, price, size, qty });
+    localStorage.setItem('basket', JSON.stringify(basket));
+    updateBasketDisplay();
+  }
+
+  function updateBasketDisplay() {
+    const list = document.getElementById('basket-list');
+    const totalDisplay = document.getElementById('basket-total');
+    const shippingDisplay = document.getElementById('shipping-cost');
+    list.innerHTML = '';
+    let total = 0;
+    basket.forEach((item, index) => {
+      const itemTotal = item.price * item.qty;
+      const li = document.createElement('li');
+      li.innerHTML = `${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${itemTotal.toFixed(2)} <button class='remove-btn' onclick="removeItem(${index})">❌</button>`;
+      list.appendChild(li);
+      total += itemTotal;
+    });
+    const shipping = parseFloat(document.getElementById('shipping').value);
+    shippingDisplay.textContent = shipping.toFixed(2);
+    totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)}`;
+  }
+
+  function removeItem(index) {
+    basket.splice(index, 1);
+    localStorage.setItem("basket", JSON.stringify(basket));
+    updateBasketDisplay();
+  }
+
+  function emptyBasket() {
+    if (confirm("Empty your basket?")) {
+      basket = [];
+      localStorage.removeItem("basket");
       updateBasketDisplay();
     }
+  }
 
-    function updateBasketDisplay() {
-  const modalList = document.getElementById("modalBasketList");
-  const modalTotal = document.getElementById("modalTotal");
-  if (modalList) modalList.innerHTML = '';
-  let modalSum = 0;
+  function clearProfile() {
+    localStorage.removeItem("clientProfile");
+    alert("Saved details removed.");
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("address1").value = "";
+    document.getElementById("address2").value = "";
+    document.getElementById("postcode").value = "";
+  }
 
-  const creditDisplay = document.getElementById("credit-balance");
-  const credit = parseFloat(localStorage.getItem("shopCredit") || "0");
-  if (creditDisplay) creditDisplay.textContent = `💷 Credit from Progress: £${credit.toFixed(2)}`;
-      const list = document.getElementById('basket-list');
-      const totalDisplay = document.getElementById('basket-total');
-      const shippingDisplay = document.getElementById('shipping-cost');
-      list.innerHTML = '';
-      let total = 0;
-      basket.forEach((item, index) => {
-        const itemTotal = item.price * item.qty;
-        const li = document.createElement('li');
-        li.innerHTML = `${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${itemTotal.toFixed(2)} <button class='remove-btn' onclick="removeItem(${index})">❌</button>`;
-        list.appendChild(li);
-    if (modalList) {
-      const mini = document.createElement('li');
-      mini.textContent = `${item.qty} x ${item.name}`;
-      modalList.appendChild(mini);
+  function handleCheckout() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address1 = document.getElementById('address1').value.trim();
+    const address2 = document.getElementById('address2').value.trim();
+    const postcode = document.getElementById('postcode').value.trim();
+    const shippingLabel = document.getElementById('shipping').selectedOptions[0].text;
+    const shippingPrice = parseFloat(document.getElementById('shipping').value);
+
+    if (!name || !email || !phone || !address1 || !address2 || !postcode || !document.getElementById("stockAgree").checked) {
+      alert("Please complete all fields and agree to the build time.");
+      return;
     }
-    modalSum += itemTotal;
-    total += itemTotal;
-      });
-      const shipping = parseFloat(document.getElementById('shipping').value);
-      shippingDisplay.textContent = shipping.toFixed(2);
-      totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)} - £${credit.toFixed(2)} credit = £${Math.max(0, total + shipping - credit).toFixed(2)}`;
-  if (modalTotal) modalTotal.textContent = `Total: £${(Math.max(0, modalSum - credit)).toFixed(2)}`;
-    }
+    let summary = `--- HealthAndHIT Gear Order ---\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nAddress:\n${address1}\n${address2}\n${postcode}\nShipping Method: ${shippingLabel}\n\nOrdered Items:\n`;
+    let total = 0;
+    basket.forEach(item => {
+      const lineTotal = item.price * item.qty;
+      summary += `- ${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${lineTotal.toFixed(2)}\n`;
+      total += lineTotal;
+    });
+    summary += `\nShipping: £${shippingPrice.toFixed(2)}\nTotal: £${(total + shippingPrice).toFixed(2)}\n\n⚠️ This is an order confirmation only.\nYour items will be shipped after payment is received.\n\nSent via HealthAndHIT Shop`;
 
-    function removeItem(index) {
-      basket.splice(index, 1);
-      localStorage.setItem("basket", JSON.stringify(basket));
-      updateBasketDisplay();
-    }
-
-    function emptyBasket() {
-      if (confirm("Empty your basket?")) {
-        let usedCredit = Math.min(credit, total + shippingPrice);
-    let remainingCredit = credit - usedCredit;
-    localStorage.setItem("shopCredit", remainingCredit.toFixed(2));
-    basket = [];
-        localStorage.removeItem("basket");
-        updateBasketDisplay();
-      }
-    }
-
-    
-function sendEmailDirect(bodyContent, customerEmail, total, shippingPrice) {
-  const credit = parseFloat(localStorage.getItem("shopCredit") || "0");
-  const fullTotal = (total + shippingPrice - credit).toFixed(2);
-  cordova.plugins.email.open({
-    app: 'mailto',
-    to: ['healthandhit@gmail.com'],
-    cc: [customerEmail],
-    subject: 'New HealthAndHIT Gear Order',
-    body: bodyContent,
-    isHtml: false
-  }, function () {
-    let usedCredit = Math.min(credit, total + shippingPrice);
-    let remainingCredit = credit - usedCredit;
-    localStorage.setItem("shopCredit", remainingCredit.toFixed(2));
+    document.getElementById('order-summary').textContent = summary;
     basket = [];
     localStorage.removeItem("basket");
     updateBasketDisplay();
 
-    const paypalBase = "https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=healthandhit@gmail.com&item_name=HealthAndHIT+Gear+Order&currency_code=GBP&amount=";
-    const fullPaypalLink = paypalBase + fullTotal;
-    document.getElementById("paypal-link-dynamic").innerHTML = '<a style="color:#00ffff;" id="paypalLinkFinal" href="' + fullPaypalLink + '" target="_blank">Pay £' + fullTotal + ' via PayPal</a>';
-
-    document.getElementById('payment-info').style.display = 'block';
-    document.getElementById('order-confirm').style.display = 'block';
-
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  }, function (err) {
-    alert("Email failed to send: " + err);
-  });
-}
-
-
-    document.addEventListener('deviceready', function () {
-
-  // Auto-fill from localStorage if available
-  const savedProfile = JSON.parse(localStorage.getItem("clientProfile"));
-  if (savedProfile) {
-    document.getElementById("name").value = savedProfile.name || "";
-    document.getElementById("email").value = savedProfile.email || "";
-    document.getElementById("phone").value = savedProfile.phone || "";
-    document.getElementById("address1").value = savedProfile.address1 || "";
-    document.getElementById("address2").value = savedProfile.address2 || "";
-    document.getElementById("postcode").value = savedProfile.postcode || "";
+    // Reset modal state
+    document.getElementById('payNowBtn').style.display = 'none';
+    document.getElementById('copyAndEmailBtn').disabled = false;
+    document.getElementById('copyAndEmailBtn').textContent = "Copy Order & Email";
+    document.getElementById('order-confirm-bg').style.display = 'flex';
   }
 
-      document.getElementById('shipping').addEventListener('change', updateBasketDisplay);
-
-      window.handleCheckout = function () {
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const address1 = document.getElementById('address1').value.trim();
-        const address2 = document.getElementById('address2').value.trim();
-        const postcode = document.getElementById('postcode').value.trim();
-        const shippingLabel = document.getElementById('shipping').selectedOptions[0].text;
-        const shippingPrice = parseFloat(document.getElementById('shipping').value);
-
-        
-      // Auto-fill from localStorage if available
-      const savedProfile = JSON.parse(localStorage.getItem("clientProfile"));
-      if (savedProfile) {
-        document.getElementById("name").value = savedProfile.name || "";
-        document.getElementById("email").value = savedProfile.email || "";
-        document.getElementById("phone").value = savedProfile.phone || "";
-        document.getElementById("address1").value = savedProfile.address1 || "";
-        document.getElementById("address2").value = savedProfile.address2 || "";
-        document.getElementById("postcode").value = savedProfile.postcode || "";
-      }
-
-      // Save profile on checkout if checkbox is checked
-      if (document.getElementById("saveProfile").checked) {
-        const clientProfile = {
-          name,
-          email,
-          phone,
-          address1,
-          address2,
-          postcode
-        };
-        localStorage.setItem("clientProfile", JSON.stringify(clientProfile));
-      }
-
-
-        if (!name || !email || !phone || !address1 || !address2 || !postcode || !document.getElementById("stockAgree").checked) {
-          alert("Please complete all fields.");
-          return;
-        }
-
-        let summary = `--- HealthAndHIT Gear Order ---
-
-Name: ${name}
-Email: ${email}
-Phone: ${phone}
-Address:
-${address1}
-${address2}
-${postcode}
-Shipping Method: ${shippingLabel}
-
-Ordered Items:
-`;
-
-        let total = 0;
-        basket.forEach(item => {
-          const lineTotal = item.price * item.qty;
-          summary += `- ${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${lineTotal.toFixed(2)}
-`;
-          total += lineTotal;
-        });
-
-        summary += `
-Shipping: £${shippingPrice.toFixed(2)}
-Total: £${(total + shippingPrice).toFixed(2)}
-
-⚠️ This is an order confirmation only.
-Your items will be shipped after payment is received.
-
-Sent via HealthAndHIT App`;
-
-        
-    const weightLog = JSON.parse(localStorage.getItem("weightLog") || "[]");
-    const startWeight = parseFloat(localStorage.getItem("startWeight") || "0");
-    const latestWeight = weightLog.length > 0 ? weightLog[weightLog.length - 1].weight : startWeight;
-    const weightLost = (startWeight - latestWeight).toFixed(1);
-
-    const credit = parseFloat(localStorage.getItem("shopCredit") || "0");
-    const creditUsed = Math.min(credit, total + shippingPrice);
-    const creditRemaining = (credit - creditUsed).toFixed(2);
-
-    let timeline = "";
-weightLog.forEach(entry => {
-  timeline += `- ${entry.date}: ${entry.weight} kg\n`;
-});
-
-summary += `
-Progress Snapshot:
-Start Weight: ${startWeight} kg
-Current Weight: ${latestWeight} kg
-Total Lost: ${weightLost} kg
-Credit Used: £${creditUsed.toFixed(2)}
-Remaining Credit: £${creditRemaining}
-
-Progress Timeline:
-${timeline}`;
-
-    sendEmailDirect(summary, email, total, shippingPrice);
-
-      };
-
-      updateBasketDisplay();
-    });
-  
-document.addEventListener("deviceready", function () {
-  
-window.shareShop = function (imgPath = null) {
-  if (!imgPath) {
-    const lightboxImg = document.getElementById('lightbox-img');
-    imgPath = lightboxImg ? lightboxImg.src : null;
+  function closeOrderModal() {
+    document.getElementById('order-confirm-bg').style.display = 'none';
   }
-  if (window.plugins && window.plugins.socialsharing) {
-    var message = 'Check out HealthAndHIT Gear – serious kit for serious training!';
-    var subject = 'HealthAndHIT Gear';
-    var image = imgPath || null;
-    var url = 'https://healthandhit.com';
-    var fullMessage = message + "\n\nFitness Gear: https://healthandhit.com/healthapp\nEmbroidery: https://facebook.com/cwtchycomforts";
-    window.plugins.socialsharing.share(fullMessage, subject, image, null);
+
+function copyOrderAndEmail() {
+  const summary = document.getElementById('order-summary').textContent;
+  
+  // Try to copy
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(summary);
   } else {
-    alert("Sharing not available on this platform.");
+    const temp = document.createElement('textarea');
+    temp.value = summary;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
   }
-};
+  // Open mailto link (opens default email app)
+  window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(summary);
 
-
-  window.clearProfile = function () {
-    localStorage.removeItem("clientProfile");
-    alert("Saved details removed.");
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("address1").value = "";
-    document.getElementById("address2").value = "";
-    document.getElementById("postcode").value = "";
-  };
-});
-</script>
-<script src="../cordova.js">
-document.addEventListener("deviceready", function () {
-  
-window.shareShop = function (imgPath = null) {
-  if (!imgPath) {
-    const lightboxImg = document.getElementById('lightbox-img');
-    imgPath = lightboxImg ? lightboxImg.src : null;
-  }
-  if (window.plugins && window.plugins.socialsharing) {
-    var message = 'Check out HealthAndHIT Gear – serious kit for serious training!';
-    var subject = 'HealthAndHIT Gear';
-    var image = imgPath || null;
-    var url = 'https://healthandhit.com';
-    var fullMessage = message + "\n\nFitness Gear: https://healthandhit.com/healthapp\nEmbroidery: https://facebook.com/cwtchycomforts";
-    window.plugins.socialsharing.share(fullMessage, subject, image, null);
-  } else {
-    alert("Sharing not available on this platform.");
-  }
-};
-
-
-  window.clearProfile = function () {
-    localStorage.removeItem("clientProfile");
-    alert("Saved details removed.");
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("address1").value = "";
-    document.getElementById("address2").value = "";
-    document.getElementById("postcode").value = "";
-  };
-});
-</script>
-<!-- Additional Products Start -->
-<div class="category">
-
-<div class="products">
-<div class="product">
-<div class="img-wrapper"><img alt="Vest" src="vest.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Vest – £18</p><div class="options">
-<select id="size-vest"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-<input id="qty-vest" min="1" type="number" value="1"/><button onclick="addToBasket('Vest', 18, 'size-vest', 'qty-vest')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Cap" src="cap.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Cap – £15</p><div class="options">
-<input id="qty-cap" min="1" type="number" value="1"/><button onclick="addToBasket('Cap', 15, null, 'qty-cap')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Jumper" src="jumper.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Jumper – £35</p><div class="options">
-<select id="size-jumper"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-<input id="qty-jumper" min="1" type="number" value="1"/><button onclick="addToBasket('Jumper', 35, 'size-jumper', 'qty-jumper')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Hoodie" src="hoodie.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Hoodie – £38</p><div class="options">
-<select id="size-hoodie"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-<input id="qty-hoodie" min="1" type="number" value="1"/><button onclick="addToBasket('Hoodie', 38, 'size-hoodie', 'qty-hoodie')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Sublimated Cap" src="subcap.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Sublimated Cap – £20</p><div class="options">
-<select id="size-subcap"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
-<input id="qty-subcap" min="1" type="number" value="1"/><button onclick="addToBasket('Sublimated Cap', 20, 'size-subcap', 'qty-subcap')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-</div>
-</div>
-<div class="category">
-
-<div class="products">
-<div class="product">
-<div class="img-wrapper"><img alt="Mug" src="mug.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Mug – £12</p><div class="options">
-<input id="qty-mug" min="1" type="number" value="1"/><button onclick="addToBasket('Mug', 12, null, 'qty-mug')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-
-<div class="product">
-<div class="img-wrapper"><img alt="Bottle" src="bottle.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Bottle – £15</p><div class="options">
-<input id="qty-bottle" min="1" type="number" value="1"/><button onclick="addToBasket('Bottle', 15, null, 'qty-bottle')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Keyring" src="keyring.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Keyring – £5</p><div class="options">
-<input id="qty-keyring" min="1" type="number" value="1"/><button onclick="addToBasket('Keyring', 5, null, 'qty-keyring')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-<div class="product">
-<div class="img-wrapper"><img alt="Gym Bag" src="gymbag.png"/><img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/></div><p>Gym Bag – £12</p><div class="options">
-<input id="qty-gymbag" min="1" type="number" value="1"/><button onclick="addToBasket('Gym Bag', 12, null, 'qty-gymbag')">Add</button>
-<img class="share-inline" onclick="shareShop(this.closest('.product').querySelector('img').src)" src="share_logo.png" title="Share this item"/>
-</div></div>
-</div>
-</div>
-<!-- Additional Products End -->
-<div style="background:#ffe5f0; color:#333; border-left:6px solid #ff69b4; padding:15px; margin:20px; border-radius:10px;">
-<h3 style="margin-top:0;">🎁 Personalised Gifts Available!</h3>
-<p>Looking for something unique and embroidered with love?</p>
-<img alt="Cwtchy Comforts" src="teddy.png" style="height: 100px; margin: 10px auto; display: block;"/>
-<p style="text-align:center;">
-<a href="https://www.facebook.com/share/1AFFGqW2kF/" onclick="openFacebookPage(event)" style="background:#d00000; color:white; padding:10px 15px; border-radius:6px;
-              text-decoration:none; font-weight:bold;">
-      Visit us on Facebook
-    </a>
-</p>
-</div>
-<div id="basket">
-<h3>Your Basket</h3>
-<ul id="basket-list"></ul>
-<button onclick="emptyBasket()">🗑️ Empty Basket</button>
-<p class="total">Shipping: £<span id="shipping-cost">0.00</span></p>
-<p class="total" id="credit-balance" style="color: #00ff99;">💷 Credit from Progress: £0</p>
-<p class="total" id="basket-total">Total: £0</p>
-<label for="shipping">Shipping Method:</label>
-<label for="shipping" style="display:flex;align-items:center;gap:6px;margin-top:10px;">🚐 Shipping Method:
-</label>
-<select id="shipping" onchange="updateBasketDisplay()">
-<option value="0">Local Pickup – £0 (ASAP)</option>
-<option value="3.99">UK Standard – £3.99 (2–4 days)</option>
-<option value="6.99">Express – £6.99 (Next Day)</option>
-</select>
-<div style="background:#1f1f1f;color:#ffcc00;padding:10px;margin-top:15px;border-radius:8px;">
-  ⚠️ <strong>Please Note:</strong><br/>All items are handmade or customised to order.<br/>This means production times may vary depending on stock and demand.<br/>🕒 <strong>Please allow time for your item to be built and dispatched.</strong><br/>
-<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:bold;">
-<input id="stockAgree" required="" type="checkbox"/> I understand items are made to order and may vary slightly or require additional build time.
-  </label>
-</div>
-</div>
-<div class="checkout">
-<h2>Checkout</h2>
-<div class="checkout-form">
-<input id="name" placeholder="Full Name" required="" type="text">
-<input id="email" placeholder="Email" required="" type="email"/>
-<input id="phone" placeholder="Phone Number" required="" type="text"/>
-<input id="address1" placeholder="Street Address" required="" type="text"/>
-<input id="address2" placeholder="Town/City" required="" type="text"/>
-<input id="postcode" placeholder="Postcode" required="" type="text"/>
-<div class="profile-controls"><label><input id="saveProfile" type="checkbox"/> Save for future purchases</label><button class="clear-profile" onclick="clearProfile()">❌ Remove all saved details</button></div>
-<br><br>
-<button onclick="handleCheckout()">Place Order</button>
-</br></br></input></div>
-<div class="lightbox" id="lightbox" onclick="this.style.display='none'">
-<img class="lightbox-share" onclick="event.stopPropagation(); shareShop()" src="share_logo.png" title="Share this item"/>
-<img alt="Preview" id="lightbox-img" src=""/>
-</div>
-<script>
-document.querySelectorAll('.product img').forEach(img => {
-  img.addEventListener('click', () => {
-    document.getElementById('lightbox-img').src = img.src;
-    document.getElementById('lightbox').style.display = 'flex';
-  });
-});
-function downloadOrder() {
-  let basket = localStorage.getItem("basket");
-  if (!basket) {
-    alert("Your basket is empty.");
-    return;
-  }
-  const data = "HealthAndHIT Gear Order\n\n" + JSON.parse(basket).map(item => {
-    return `${item.qty} x ${item.name}${item.size ? " (" + item.size + ")" : ""} – £${(item.qty * item.price).toFixed(2)}`
-  }).join("\n");
-  const blob = new Blob([data], {type: 'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "my_order.txt";
-  a.click();
+  // Show payment button and feedback
+  document.getElementById('payNowBtn').style.display = '';
+  document.getElementById('copyAndEmailBtn').disabled = true;
+  document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
 }
 
-document.addEventListener("deviceready", function () {
-  
-window.shareShop = function (imgPath = null) {
-  if (!imgPath) {
-    const lightboxImg = document.getElementById('lightbox-img');
-    imgPath = lightboxImg ? lightboxImg.src : null;
-  }
-  if (window.plugins && window.plugins.socialsharing) {
-    var message = 'Check out HealthAndHIT Gear – serious kit for serious training!';
-    var subject = 'HealthAndHIT Gear';
-    var image = imgPath || null;
-    var url = 'https://www.facebook.com/georgue';
-    var fullMessage = message + "\n\nFitness Gear: https://healthandhit.com/healthapp\nEmbroidery: https://facebook.com/cwtchycomforts";
-    window.plugins.socialsharing.share(fullMessage, subject, image, null);
-  } else {
-    alert("Sharing not available on this platform.");
-  }
-};
 
 
-  window.clearProfile = function () {
-    localStorage.removeItem("clientProfile");
-    alert("Saved details removed.");
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("address1").value = "";
-    document.getElementById("address2").value = "";
-    document.getElementById("postcode").value = "";
-  };
-});
+
+  document.addEventListener('DOMContentLoaded', updateBasketDisplay);
 </script>
-<div id="order-confirm">
-<h3>Order Sent!</h3>
-<p>Once payment has been received,<br/>you’ll get a confirmation reply.</p>
-<p><strong>Payment Options:</strong><br/>
-  PayPal: <span id="paypal-link-dynamic"><a href="https://paypal.me/healthandhit" style="color:#00ffff;" target="_blank">paypal.me/healthandhit</a></span><br/>
-  Google Pay: healthandhit@gmail.com</p>
-<button onclick="document.getElementById('order-confirm').style.display='none'; const pp=document.getElementById('paypalLinkFinal'); if(pp) window.open(pp.href, '_blank');">OK</button>
-</div>
-<script>
-function updatePaypalLinkWithTotal(total, shipping) {
-  const amount = (total + shipping).toFixed(2);
-  const paypalLinkSpan = document.getElementById("paypal-link-dynamic");
-  if (paypalLinkSpan) {
-    paypalLinkSpan.innerHTML = '<a style="color:#00ffff;" id="paypalLinkFinal" href="https://paypal.me/healthandhit/' + amount + '" target="_blank">paypal.me/healthandhit/' + amount + '</a>';
-  }
-}
-
-function openFacebookPage(e) {
-  e.preventDefault();
-  var fbAppLink = "fb://page/105705212417646";  // Cwtchy Comforts Page ID
-  var fbWebLink = "https://www.facebook.com/cwtchycomforts";
-  window.open(fbAppLink, "_system");
-  setTimeout(function () {
-    window.open(fbWebLink, "_blank");
-  }, 1500);
-}
-</script>
-<div id="basketModal" style="position:fixed;top:10px;right:10px;background:#1f1f1f;border:2px solid red;border-radius:8px;padding:10px;z-index:9999;color:white;max-width:250px;font-size:14px;box-shadow:0 0 10px black;">
-<strong>🛒 Basket</strong>
-<ul id="modalBasketList" style="list-style:none;padding-left:0;margin-top:5px;"></ul>
-<p style="margin:5px 0 0;"><span id="modalTotal">Total: £0</span></p>
-</div>
-</div></body>
+</body>
 </html>

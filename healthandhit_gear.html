@@ -5,81 +5,146 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HealthAndHIT Gear</title>
   <style>
-    body { font-family: 'Poppins', Arial, sans-serif; background: #2b2b2b; color: #fff; margin: 0; }
-    h1 { text-align: center; color: #ff3939; margin: 28px 0 16px; font-size: 2em; }
-    .category { margin: 0 auto 24px auto; max-width: 1100px; padding: 18px 8px; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #2b2b2b;
+      color: #fff;
+      font-family: 'Poppins', Arial, sans-serif;
+      box-sizing: border-box;
+    }
+    h1 {
+      text-align: center;
+      color: #ff3939;
+      margin: 28px 0 16px;
+      font-size: 2em;
+      font-weight: 700;
+    }
+    .category {
+      margin: 0 auto 24px auto;
+      max-width: 1200px;
+      padding: 18px 8px;
+    }
     .products {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
       justify-items: center;
+      width: 100%;
     }
     .product, .coming-soon {
       background: #23232b;
       border-radius: 14px;
       box-shadow: 0 2px 16px #0005;
       border: 1.5px solid #353545;
-      max-width: 290px;
-      min-width: 210px;
-      min-height: 390px;
-      height: 100%;
-      padding: 18px 14px 16px 14px;
-      margin: 0;
+      width: 100%;
+      max-width: 330px;
+      min-width: 0;
+      min-height: 430px;
+      height: 430px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      transition: box-shadow .14s, transform .12s;
       position: relative;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding: 18px 14px 16px 14px;
+      transition: box-shadow .14s, transform .12s;
     }
     .product:hover { box-shadow: 0 5px 32px #0008; transform: translateY(-2px) scale(1.04);}
     .product img, .coming-soon img {
-      width: 100%;
-      min-height: 120px;
-      max-height: 150px;
+      width: 90%;
+      max-width: 185px;
+      min-height: 110px;
+      max-height: 130px;
       object-fit: contain;
       border-radius: 10px;
       background: #19191f;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       margin-top: 6px;
-      cursor: pointer;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+    .product p, .coming-soon p {
+      font-size: 1.10em;
+      margin: 2px 0 0 0;
+      text-align: center;
+      word-break: break-word;
+      font-weight: 500;
+      flex-shrink: 0;
     }
     .product .options, .coming-soon .options {
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
       margin-top: 10px;
-      margin-bottom: auto;
+      margin-bottom: 0;
+      flex-shrink: 0;
     }
-    .options select, .options input, .options button { width: 100%; font-size: 16px; padding: 10px; border-radius: 6px; margin-bottom: 4px;}
-    button { background: linear-gradient(90deg, #ff2727 60%, #d00000 100%); color: #fff; font-weight: 600; border: none; border-radius: 8px; padding: 10px 0; margin-top: 6px; box-shadow: 0 2px 8px #d0000030; }
+    .options select, .options input, .options button {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      border: 1px solid #23232b;
+    }
+    button {
+      background: linear-gradient(90deg, #ff2727 60%, #d00000 100%);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 0;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px #d0000030;
+      cursor: pointer;
+    }
     button:active { background: #a00000; }
-    .remove-btn { background: #1c1c1c !important; color: #ffbaba; font-size: 1.1em; padding: 7px 0 !important; border-radius: 10px !important; width: 34px !important; margin-left: 10px;}
+    .remove-btn {
+      background: #1c1c1c !important;
+      color: #ffbaba;
+      font-size: 1.1em;
+      padding: 7px 0 !important;
+      border-radius: 10px !important;
+      width: 34px !important;
+      margin-left: 10px;
+      border: none !important;
+      cursor: pointer;
+    }
     .remove-btn:hover { background: #ff4444 !important; color: #fff;}
-    .product p, .coming-soon p { font-size: 1.09em; margin: 6px 0 0 0;}
     .product .coming-label, .coming-soon .coming-label {
-      background: #444; color: #ffbebe; padding: 6px 13px;
-      border-radius: 8px; font-size: 1.1em; letter-spacing: 1px;
-      font-weight: 600; margin-top: 20px;
+      background: #444;
+      color: #ffbebe;
+      padding: 6px 13px;
+      border-radius: 8px;
+      font-size: 1.1em;
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-top: 15px;
+      margin-bottom: 0;
+      flex-shrink: 0;
     }
     .coming-soon {
-      opacity: 0.5;
+      opacity: 0.6;
       background: #222228;
       border: 1.5px dashed #707087;
       pointer-events: none;
     }
-    .coming-soon img { filter: grayscale(100%) brightness(1.2); }
-    /* Responsive */
-    @media (max-width: 1100px) { .category { max-width: 98vw; } }
+    .coming-soon img { filter: grayscale(100%) brightness(1.15); }
+    @media (max-width: 1200px) {
+      .category { max-width: 98vw; }
+    }
     @media (max-width: 950px) {
-      .products { grid-template-columns: repeat(2, 1fr);}
+      .products { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .product, .coming-soon { min-width: 0; }
     }
     @media (max-width: 700px) {
       .products { grid-template-columns: 1fr; }
-      .product, .coming-soon { max-width: 95vw; min-width: 160px;}
+      .product, .coming-soon { max-width: 98vw; }
     }
-    /* Order Modal Popup */
+
     #order-confirm-bg {
       display: none;
       position: fixed;
@@ -121,6 +186,22 @@
       text-align: left;
       margin-bottom: 10px;
       border: 1px solid #232340;
+    }
+    #order-note-box {
+      margin-bottom: 13px;
+      width: 100%;
+    }
+    #order-note {
+      width: 100%;
+      min-height: 48px;
+      background: #23232b;
+      color: #fff;
+      border-radius: 8px;
+      border: 1.5px solid #353545;
+      font-size: 1em;
+      padding: 8px 11px;
+      box-sizing: border-box;
+      resize: vertical;
     }
     #order-confirm .payment-section {
       margin: 12px 0 12px 0;
@@ -169,11 +250,52 @@
       opacity: 0.75;
     }
     #order-confirm .close-x:hover { opacity: 1; color: #fff;}
+    .email-help {
+      margin-top: 12px;
+      color: #ffcfcf;
+      font-size: 0.93em;
+      text-align: center;
+    }
+    .email-help b { color: #1fffd7; }
     @media (max-width: 480px) {
       #order-confirm { max-width: 99vw; padding: 10px 3vw; }
       #order-summary { font-size: .98em;}
       #order-confirm .modal-buttons button { padding: 11px 5vw;}
     }
+    /*--- Basket/Checkout Styles (keep same as before or style to fit your layout) ---*/
+    #basket {
+      background: #23232b;
+      border-radius: 14px;
+      border: 1.5px solid #353545;
+      max-width: 440px;
+      margin: 32px auto 18px auto;
+      box-shadow: 0 2px 16px #0005;
+      padding: 18px 18px 18px 18px;
+    }
+    #basket h3 { margin-top: 0; color: #ffb923; }
+    #basket-list { list-style: none; padding-left: 0;}
+    #basket-list li { margin-bottom: 8px;}
+    .total { font-weight: 500; margin: 4px 0;}
+    .checkout {
+      background: #23232b;
+      border-radius: 14px;
+      border: 1.5px solid #353545;
+      max-width: 440px;
+      margin: 0 auto 32px auto;
+      box-shadow: 0 2px 16px #0005;
+      padding: 22px 18px 24px 18px;
+    }
+    .checkout h2 { color: #1fff99; margin-top: 0;}
+    .checkout-form input, .checkout-form select {
+      width: 100%; padding: 11px; border-radius: 8px;
+      border: 1.2px solid #292930; background: #1c1c20;
+      color: #fff; margin-bottom: 10px; font-size: 1em;
+    }
+    .checkout-form button { margin-top: 10px;}
+    .profile-controls { margin-bottom: 8px;}
+    .profile-controls label { font-size: 0.99em;}
+    .clear-profile { background: #111; color: #ffbaba; margin-top: 0;}
+    .clear-profile:hover { background: #d00000; color: #fff;}
   </style>
 </head>
 <body>
@@ -264,28 +386,37 @@
         <button onclick="addToBasket('Gym Bag', 12, null, 'qty-gymbag')">Add</button>
       </div>
     </div>
-    <!-- 4 "Coming Soon" boxes -->
+    <div class="product">
+      <img alt="T-shirt" src="tshirt.jpg"/>
+      <p>T-shirt – £12</p>
+      <div class="options">
+        <select id="size-tshirt"><option>Size</option><option>Medium</option><option>Large</option><option>XL</option></select>
+        <input id="qty-tshirt" min="1" type="number" value="1"/>
+        <button onclick="addToBasket('T-shirt', 12, 'size-tshirt', 'qty-tshirt')">Add</button>
+      </div>
+    </div>
+    <!-- 4 "Coming Soon" boxes (all identical) -->
     <div class="coming-soon">
-      <img src="beaker.png" alt="Coming Soon"/>
-      <p>Beaker</p>
+      <img src="comingsoon.png" alt="Coming Soon"/>
+      <p>Coming Soon</p>
       <div class="options"></div>
       <span class="coming-label">Coming Soon</span>
     </div>
     <div class="coming-soon">
-      <img src="paypal.png" alt="Coming Soon"/>
-      <p>Gift Voucher</p>
+      <img src="comingsoon.png" alt="Coming Soon"/>
+      <p>Coming Soon</p>
       <div class="options"></div>
       <span class="coming-label">Coming Soon</span>
     </div>
     <div class="coming-soon">
-      <img src="bag-2.png" alt="Coming Soon"/>
-      <p>Large Gym Bag</p>
+      <img src="comingsoon.png" alt="Coming Soon"/>
+      <p>Coming Soon</p>
       <div class="options"></div>
       <span class="coming-label">Coming Soon</span>
     </div>
     <div class="coming-soon">
-      <img src="teddy.png" alt="Coming Soon"/>
-      <p>Custom Teddy</p>
+      <img src="comingsoon.png" alt="Coming Soon"/>
+      <p>Coming Soon</p>
       <div class="options"></div>
       <span class="coming-label">Coming Soon</span>
     </div>
@@ -335,6 +466,9 @@
   <div id="order-confirm">
     <span class="close-x" onclick="closeOrderModal()">&times;</span>
     <h3>Order Summary</h3>
+    <div id="order-note-box">
+      <textarea id="order-note" placeholder="Add a note or request (optional)"></textarea>
+    </div>
     <pre id="order-summary"></pre>
     <div class="payment-section">
       <strong>Payment Options:</strong><br>
@@ -342,11 +476,14 @@
       Google Pay: <span class="gpay">healthandhit@gmail.com</span>
     </div>
     <div class="modal-buttons">
-      <button id="copyAndEmailBtn" onclick="copyOrderAndEmail()">Copy Order &amp; Email</button>
+      <button id="copyAndEmailBtn" onclick="copyOrderAndEmail()">Copy &amp; Email Order</button>
+      <button id="copyOnlyBtn" onclick="copyOrderOnly()">Copy Order Only</button>
       <button id="payNowBtn" style="display:none;" onclick="window.open('https://paypal.me/healthandhit','_blank');">Pay Now (PayPal)</button>
       <button onclick="closeOrderModal()">Close</button>
     </div>
-    <div style="color:#ccc;font-size:0.93em;margin-top:12px;">(Copy order, email to <span style="color:#1fffd7">healthandhit@gmail.com</span> and pay!)</div>
+    <div class="email-help">
+      <b>Having trouble?</b> If your email doesn't open, just paste the order into an email to <b>healthandhit@gmail.com</b>.
+    </div>
   </div>
 </div>
 
@@ -369,6 +506,7 @@
     const list = document.getElementById('basket-list');
     const totalDisplay = document.getElementById('basket-total');
     const shippingDisplay = document.getElementById('shipping-cost');
+    if(!list) return;
     list.innerHTML = '';
     let total = 0;
     basket.forEach((item, index) => {
@@ -378,9 +516,9 @@
       list.appendChild(li);
       total += itemTotal;
     });
-    const shipping = parseFloat(document.getElementById('shipping').value);
-    shippingDisplay.textContent = shipping.toFixed(2);
-    totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)}`;
+    const shipping = document.getElementById('shipping') ? parseFloat(document.getElementById('shipping').value) : 0;
+    if(shippingDisplay) shippingDisplay.textContent = shipping.toFixed(2);
+    if(totalDisplay) totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)}`;
   }
 
   function removeItem(index) {
@@ -409,7 +547,6 @@
   }
 
   function handleCheckout() {
-    // STOP checkout if basket is empty
     if (!basket.length) {
       alert("Your basket is empty. Please add items before checking out!");
       return;
@@ -445,8 +582,9 @@
     // Reset modal state
     document.getElementById('payNowBtn').style.display = 'none';
     document.getElementById('copyAndEmailBtn').disabled = false;
-    document.getElementById('copyAndEmailBtn').textContent = "Copy Order & Email";
+    document.getElementById('copyAndEmailBtn').textContent = "Copy & Email Order";
     document.getElementById('order-confirm-bg').style.display = 'flex';
+    document.getElementById('order-note').value = '';
   }
 
   function closeOrderModal() {
@@ -455,25 +593,46 @@
 
   function copyOrderAndEmail() {
     const summary = document.getElementById('order-summary').textContent;
+    const note = document.getElementById('order-note').value.trim();
+    let emailBody = note ? `NOTE: ${note}\n\n${summary}` : summary;
 
     // Try to copy
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(summary);
+      navigator.clipboard.writeText(emailBody);
     } else {
       const temp = document.createElement('textarea');
-      temp.value = summary;
+      temp.value = emailBody;
       document.body.appendChild(temp);
       temp.select();
       document.execCommand('copy');
       document.body.removeChild(temp);
     }
-    // Open mailto link (opens default email app)
-    window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(summary);
+    // Open mailto link (opens default email app if possible)
+    window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(emailBody);
 
     // Show payment button and feedback
     document.getElementById('payNowBtn').style.display = '';
     document.getElementById('copyAndEmailBtn').disabled = true;
     document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
+  }
+
+  function copyOrderOnly() {
+    const summary = document.getElementById('order-summary').textContent;
+    const note = document.getElementById('order-note').value.trim();
+    let emailBody = note ? `NOTE: ${note}\n\n${summary}` : summary;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(emailBody);
+      alert("Order copied! Paste it into your email app.");
+    } else {
+      const temp = document.createElement('textarea');
+      temp.value = emailBody;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      alert("Order copied! Paste it into your email app.");
+    }
   }
 
   document.addEventListener('DOMContentLoaded', updateBasketDisplay);

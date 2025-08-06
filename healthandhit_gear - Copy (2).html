@@ -79,6 +79,101 @@
       .products { grid-template-columns: 1fr; }
       .product, .coming-soon { max-width: 95vw; min-width: 160px;}
     }
+    /* Order Modal Popup */
+    #order-confirm-bg {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(24,24,24,0.85);
+      justify-content: center;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    #order-confirm {
+      background: #181824;
+      color: #fff;
+      border-radius: 18px;
+      border: 2px solid #ff3939;
+      box-shadow: 0 0 42px #000b;
+      width: 94vw;
+      max-width: 420px;
+      max-height: 92vh;
+      padding: 28px 18px 20px 18px;
+      overflow-y: auto;
+      text-align: center;
+      position: relative;
+      animation: popin .18s cubic-bezier(.77,0,.18,1.09);
+    }
+    @keyframes popin {
+      0% { transform: scale(0.94) translateY(30px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1;}
+    }
+    #order-confirm h3 { margin-top: 0; color: #1fff99; }
+    #order-summary {
+      background: #19191f;
+      color: #fff;
+      padding: 13px 11px;
+      border-radius: 8px;
+      font-size: 1em;
+      max-height: 200px;
+      overflow: auto;
+      text-align: left;
+      margin-bottom: 10px;
+      border: 1px solid #232340;
+    }
+    #order-confirm .payment-section {
+      margin: 12px 0 12px 0;
+      background: #242444;
+      border-radius: 8px;
+      padding: 12px 8px;
+      font-size: 1.1em;
+      line-height: 1.5;
+    }
+    #order-confirm .payment-section a {
+      color: #1fffd7;
+      font-weight: bold;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    #order-confirm .payment-section .gpay {
+      color: #00ffae;
+      font-weight: bold;
+    }
+    #order-confirm .modal-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 13px;
+      margin-top: 18px;
+    }
+    #order-confirm .modal-buttons button {
+      font-size: 1em;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      padding: 12px 20px;
+      background: linear-gradient(90deg,#ff3939,#d00000 75%);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+    #order-confirm .modal-buttons button:active { background: #b30000; }
+    #order-confirm .close-x {
+      position: absolute;
+      right: 15px; top: 8px;
+      font-size: 1.6em;
+      color: #ff4545;
+      cursor: pointer;
+      font-weight: bold;
+      opacity: 0.75;
+    }
+    #order-confirm .close-x:hover { opacity: 1; color: #fff;}
+    @media (max-width: 480px) {
+      #order-confirm { max-width: 99vw; padding: 10px 3vw; }
+      #order-summary { font-size: .98em;}
+      #order-confirm .modal-buttons button { padding: 11px 5vw;}
+    }
   </style>
 </head>
 <body>
@@ -235,17 +330,24 @@
   </div>
 </div>
 
-<div id="order-confirm" style="display:none;">
-  <h3>Order Sent!</h3>
-  <p>Once payment has been received,<br>you’ll get a confirmation reply.</p>
-  <p><strong>Payment Options:</strong><br>
-    <span>PayPal: </span>
-    <a href="https://paypal.me/healthandhit" target="_blank" style="color:#00ffff;font-weight:bold;">paypal.me/healthandhit</a><br>
-    <span>Google Pay: </span>
-    <span style="color:#00ffcc;font-weight:bold;">healthandhit@gmail.com</span>
-  </p>
-  <button onclick="window.open('https://paypal.me/healthandhit','_blank');document.getElementById('order-confirm').style.display='none';">Pay Now</button>
-  <button style="margin-left:14px;" onclick="document.getElementById('order-confirm').style.display='none';">Close</button>
+<!-- Popup Modal for Order Summary & Payment -->
+<div id="order-confirm-bg">
+  <div id="order-confirm">
+    <span class="close-x" onclick="closeOrderModal()">&times;</span>
+    <h3>Order Summary</h3>
+    <pre id="order-summary"></pre>
+    <div class="payment-section">
+      <strong>Payment Options:</strong><br>
+      PayPal: <a href="https://paypal.me/healthandhit" target="_blank">paypal.me/healthandhit</a><br>
+      Google Pay: <span class="gpay">healthandhit@gmail.com</span>
+    </div>
+    <div class="modal-buttons">
+      <button id="copyAndEmailBtn" onclick="copyOrderAndEmail()">Copy Order &amp; Email</button>
+      <button id="payNowBtn" style="display:none;" onclick="window.open('https://paypal.me/healthandhit','_blank');">Pay Now (PayPal)</button>
+      <button onclick="closeOrderModal()">Close</button>
+    </div>
+    <div style="color:#ccc;font-size:0.93em;margin-top:12px;">(Copy order, email to <span style="color:#1fffd7">healthandhit@gmail.com</span> and pay!)</div>
+  </div>
 </div>
 
 <script>
@@ -254,7 +356,10 @@
   function addToBasket(name, price, sizeId, qtyId) {
     const size = sizeId ? document.getElementById(sizeId).value : null;
     const qty = qtyId ? parseInt(document.getElementById(qtyId).value) || 1 : 1;
-    if (sizeId && size === 'Size') { alert('Please select a size.'); return; }
+    if (sizeId && size === 'Size') {
+      alert('Please select a size.');
+      return;
+    }
     basket.push({ name, price, size, qty });
     localStorage.setItem('basket', JSON.stringify(basket));
     updateBasketDisplay();
@@ -292,7 +397,24 @@
     }
   }
 
+  function clearProfile() {
+    localStorage.removeItem("clientProfile");
+    alert("Saved details removed.");
+    document.getElementById("name").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("address1").value = "";
+    document.getElementById("address2").value = "";
+    document.getElementById("postcode").value = "";
+  }
+
   function handleCheckout() {
+    // STOP checkout if basket is empty
+    if (!basket.length) {
+      alert("Your basket is empty. Please add items before checking out!");
+      return;
+    }
+
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const phone = document.getElementById('phone').value.trim();
@@ -315,22 +437,43 @@
     });
     summary += `\nShipping: £${shippingPrice.toFixed(2)}\nTotal: £${(total + shippingPrice).toFixed(2)}\n\n⚠️ This is an order confirmation only.\nYour items will be shipped after payment is received.\n\nSent via HealthAndHIT Shop`;
 
-    alert("Order placed!\n\n" + summary + "\n\nPayment by PayPal or Google Pay. You'll get a confirmation by email once payment is received.");
+    document.getElementById('order-summary').textContent = summary;
     basket = [];
     localStorage.removeItem("basket");
     updateBasketDisplay();
-    document.getElementById('order-confirm').style.display = 'block';
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+    // Reset modal state
+    document.getElementById('payNowBtn').style.display = 'none';
+    document.getElementById('copyAndEmailBtn').disabled = false;
+    document.getElementById('copyAndEmailBtn').textContent = "Copy Order & Email";
+    document.getElementById('order-confirm-bg').style.display = 'flex';
   }
 
-  function clearProfile() {
-    alert("Saved details removed.");
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("address1").value = "";
-    document.getElementById("address2").value = "";
-    document.getElementById("postcode").value = "";
+  function closeOrderModal() {
+    document.getElementById('order-confirm-bg').style.display = 'none';
+  }
+
+  function copyOrderAndEmail() {
+    const summary = document.getElementById('order-summary').textContent;
+
+    // Try to copy
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(summary);
+    } else {
+      const temp = document.createElement('textarea');
+      temp.value = summary;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+    }
+    // Open mailto link (opens default email app)
+    window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(summary);
+
+    // Show payment button and feedback
+    document.getElementById('payNowBtn').style.display = '';
+    document.getElementById('copyAndEmailBtn').disabled = true;
+    document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
   }
 
   document.addEventListener('DOMContentLoaded', updateBasketDisplay);

@@ -5,349 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HealthAndHIT Gear</title>
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      background: #2b2b2b;
-      color: #fff;
-      font-family: 'Poppins', Arial, sans-serif;
-      box-sizing: border-box;
-    }
-    h1 {
-      text-align: center;
-      color: #ff3939;
-      margin: 28px 0 16px;
-      font-size: 2em;
-      font-weight: 700;
-    }
-    /* ===== Basket Icon Top Right ===== */
-    #basket-float {
-      position: fixed;
-      top: 23px;
-      right: 34px;
-      background: #23232b;
-      border-radius: 50%;
-      border: 2.5px solid #ff3939;
-      box-shadow: 0 4px 18px #000a;
-      z-index: 999;
-      width: 54px;
-      height: 54px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: box-shadow .17s, transform .14s;
-      animation: basketPop .2s;
-    }
-    #basket-float:active {
-      box-shadow: 0 2px 6px #ff272755, 0 2px 12px #0008;
-      transform: scale(.98);
-    }
-    #basket-float svg {
-      width: 28px;
-      height: 28px;
-      fill: #ff3939;
-      display: block;
-    }
-    #basket-count {
-      position: absolute;
-      top: 4px; right: 7px;
-      background: #1fff99;
-      color: #1d1d1d;
-      font-weight: 800;
-      font-size: 1.05em;
-      min-width: 21px;
-      height: 21px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 7px #111c;
-      border: 2px solid #23232b;
-      pointer-events: none;
-      z-index: 1001;
-      transition: background 0.14s;
-    }
-    @keyframes basketPop {
-      0% { transform: scale(0.7); opacity: 0.3;}
-      75% { transform: scale(1.12);}
-      100% { transform: scale(1); opacity: 1;}
-    }
+    html, body { margin: 0; padding: 0; background: #2b2b2b; color: #fff; font-family: 'Poppins', Arial, sans-serif; box-sizing: border-box;}
+    h1 { text-align: center; color: #ff3939; margin: 28px 0 16px; font-size: 2em; font-weight: 700;}
+    #basket-float { position: fixed; top: 23px; right: 34px; background: #23232b; border-radius: 50%; border: 2.5px solid #ff3939; box-shadow: 0 4px 18px #000a; z-index: 999; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: box-shadow .17s, transform .14s; animation: basketPop .2s;}
+    #basket-float:active { box-shadow: 0 2px 6px #ff272755, 0 2px 12px #0008; transform: scale(.98);}
+    #basket-float svg { width: 28px; height: 28px; fill: #ff3939; display: block;}
+    #basket-count { position: absolute; top: 4px; right: 7px; background: #1fff99; color: #1d1d1d; font-weight: 800; font-size: 1.05em; min-width: 21px; height: 21px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 7px #111c; border: 2px solid #23232b; pointer-events: none; z-index: 1001; transition: background 0.14s;}
+    @keyframes basketPop { 0% { transform: scale(0.7); opacity: 0.3;} 75% { transform: scale(1.12);} 100% { transform: scale(1); opacity: 1;}}
     @media (max-width: 600px) {
       #basket-float { top: 11px; right: 12px; width: 44px; height: 44px;}
       #basket-float svg { width: 22px; height: 22px;}
       #basket-count { font-size: .98em; min-width: 18px; height: 18px; top: 2px; right: 5px;}
     }
-
-    .category {
-      margin: 0 auto 24px auto;
-      max-width: 1200px;
-      padding: 18px 8px;
-    }
-    .products {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 28px;
-      justify-items: center;
-      width: 100%;
-    }
-    .product, .coming-soon {
-      background: #23232b;
-      border-radius: 14px;
-      box-shadow: 0 2px 16px #0005;
-      border: 1.5px solid #353545;
-      width: 100%;
-      max-width: 330px;
-      min-width: 0;
-      min-height: 430px;
-      height: 430px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      position: relative;
-      box-sizing: border-box;
-      overflow: hidden;
-      padding: 18px 14px 16px 14px;
-      transition: box-shadow .14s, transform .12s;
-    }
+    .category { margin: 0 auto 24px auto; max-width: 1200px; padding: 18px 8px;}
+    .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; justify-items: center; width: 100%;}
+    .product, .coming-soon { background: #23232b; border-radius: 14px; box-shadow: 0 2px 16px #0005; border: 1.5px solid #353545; width: 100%; max-width: 330px; min-width: 0; min-height: 430px; height: 430px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; box-sizing: border-box; overflow: hidden; padding: 18px 14px 16px 14px; transition: box-shadow .14s, transform .12s;}
     .product:hover { box-shadow: 0 5px 32px #0008; transform: translateY(-2px) scale(1.04);}
-    .product img, .coming-soon img {
-      width: 90%;
-      max-width: 185px;
-      min-height: 110px;
-      max-height: 130px;
-      object-fit: contain;
-      border-radius: 10px;
-      background: #19191f;
-      margin-bottom: 12px;
-      margin-top: 6px;
-      flex-shrink: 0;
-      pointer-events: none;
-    }
-    .product p, .coming-soon p {
-      font-size: 1.10em;
-      margin: 2px 0 0 0;
-      text-align: center;
-      word-break: break-word;
-      font-weight: 500;
-      flex-shrink: 0;
-    }
-    .product .options, .coming-soon .options {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-top: 10px;
-      margin-bottom: 0;
-      flex-shrink: 0;
-    }
-    .options select, .options input, .options button {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 2px;
-      border: 1px solid #23232b;
-    }
-    button {
-      background: linear-gradient(90deg, #ff2727 60%, #d00000 100%);
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 0;
-      margin-top: 4px;
-      box-shadow: 0 2px 8px #d0000030;
-      cursor: pointer;
-    }
+    .product img, .coming-soon img { width: 90%; max-width: 185px; min-height: 110px; max-height: 130px; object-fit: contain; border-radius: 10px; background: #19191f; margin-bottom: 12px; margin-top: 6px; flex-shrink: 0; pointer-events: none;}
+    .product p, .coming-soon p { font-size: 1.10em; margin: 2px 0 0 0; text-align: center; word-break: break-word; font-weight: 500; flex-shrink: 0;}
+    .product .options, .coming-soon .options { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 10px; margin-bottom: 0; flex-shrink: 0;}
+    .options select, .options input, .options button { width: 100%; font-size: 16px; padding: 10px; border-radius: 6px; margin-bottom: 2px; border: 1px solid #23232b;}
+    button { background: linear-gradient(90deg, #ff2727 60%, #d00000 100%); color: #fff; font-weight: 600; border: none; border-radius: 8px; padding: 10px 0; margin-top: 4px; box-shadow: 0 2px 8px #d0000030; cursor: pointer;}
     button:active { background: #a00000; }
-    .remove-btn {
-      background: #1c1c1c !important;
-      color: #ffbaba;
-      font-size: 1.1em;
-      padding: 7px 0 !important;
-      border-radius: 10px !important;
-      width: 34px !important;
-      margin-left: 10px;
-      border: none !important;
-      cursor: pointer;
-    }
+    .remove-btn { background: #1c1c1c !important; color: #ffbaba; font-size: 1.1em; padding: 7px 0 !important; border-radius: 10px !important; width: 34px !important; margin-left: 10px; border: none !important; cursor: pointer;}
     .remove-btn:hover { background: #ff4444 !important; color: #fff;}
-    .product .coming-label, .coming-soon .coming-label {
-      background: #444;
-      color: #ffbebe;
-      padding: 6px 13px;
-      border-radius: 8px;
-      font-size: 1.1em;
-      letter-spacing: 1px;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 0;
-      flex-shrink: 0;
-    }
-    .coming-soon {
-      opacity: 0.6;
-      background: #222228;
-      border: 1.5px dashed #707087;
-      pointer-events: none;
-    }
-    .coming-soon img { filter: grayscale(100%) brightness(1.15); }
-    @media (max-width: 1200px) {
-      .category { max-width: 98vw; }
-    }
-    @media (max-width: 950px) {
-      .products { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-      .product, .coming-soon { min-width: 0; }
-    }
-    @media (max-width: 700px) {
-      .products { grid-template-columns: 1fr; }
-      .product, .coming-soon { max-width: 98vw; }
-    }
-    #order-confirm-bg {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0; top: 0; right: 0; bottom: 0;
-      background: rgba(24,24,24,0.85);
-      justify-content: center;
-      align-items: center;
-      transition: background 0.2s;
-    }
-    #order-confirm {
-      background: #181824;
-      color: #fff;
-      border-radius: 18px;
-      border: 2px solid #ff3939;
-      box-shadow: 0 0 42px #000b;
-      width: 94vw;
-      max-width: 420px;
-      max-height: 92vh;
-      padding: 28px 18px 20px 18px;
-      overflow-y: auto;
-      text-align: center;
-      position: relative;
-      animation: popin .18s cubic-bezier(.77,0,.18,1.09);
-    }
-    @keyframes popin {
-      0% { transform: scale(0.94) translateY(30px); opacity: 0; }
-      100% { transform: scale(1) translateY(0); opacity: 1;}
-    }
-    #order-confirm h3 { margin-top: 0; color: #1fff99; }
-    #order-summary {
-      background: #19191f;
-      color: #fff;
-      padding: 13px 11px;
-      border-radius: 8px;
-      font-size: 1em;
-      max-height: 200px;
-      overflow: auto;
-      text-align: left;
-      margin-bottom: 10px;
-      border: 1px solid #232340;
-    }
-    #order-note-box {
-      margin-bottom: 13px;
-      width: 100%;
-    }
-    #order-note {
-      width: 100%;
-      min-height: 48px;
-      background: #23232b;
-      color: #fff;
-      border-radius: 8px;
-      border: 1.5px solid #353545;
-      font-size: 1em;
-      padding: 8px 11px;
-      box-sizing: border-box;
-      resize: vertical;
-    }
-    #order-confirm .payment-section {
-      margin: 12px 0 12px 0;
-      background: #242444;
-      border-radius: 8px;
-      padding: 12px 8px;
-      font-size: 1.1em;
-      line-height: 1.5;
-    }
-    #order-confirm .payment-section a {
-      color: #1fffd7;
-      font-weight: bold;
-      text-decoration: underline;
-      word-break: break-all;
-    }
-    #order-confirm .payment-section .gpay {
-      color: #00ffae;
-      font-weight: bold;
-    }
-    #order-confirm .modal-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 13px;
-      margin-top: 18px;
-    }
-    #order-confirm .modal-buttons button {
-      font-size: 1em;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      padding: 12px 20px;
-      background: linear-gradient(90deg,#ff3939,#d00000 75%);
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.14s;
-    }
-    #order-confirm .modal-buttons button:active { background: #b30000; }
-    #order-confirm .close-x {
-      position: absolute;
-      right: 15px; top: 8px;
-      font-size: 1.6em;
-      color: #ff4545;
-      cursor: pointer;
-      font-weight: bold;
-      opacity: 0.75;
-    }
+    .product .coming-label, .coming-soon .coming-label { background: #444; color: #ffbebe; padding: 6px 13px; border-radius: 8px; font-size: 1.1em; letter-spacing: 1px; font-weight: 600; margin-top: 15px; margin-bottom: 0; flex-shrink: 0;}
+    .coming-soon { opacity: 0.6; background: #222228; border: 1.5px dashed #707087; pointer-events: none;}
+    .coming-soon img { filter: grayscale(100%) brightness(1.15);}
+    @media (max-width: 1200px) { .category { max-width: 98vw; }}
+    @media (max-width: 950px) { .products { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } .product, .coming-soon { min-width: 0; }}
+    @media (max-width: 700px) { .products { grid-template-columns: 1fr; } .product, .coming-soon { max-width: 98vw; }}
+    #order-confirm-bg { display: none; position: fixed; z-index: 9999; left: 0; top: 0; right: 0; bottom: 0; background: rgba(24,24,24,0.85); justify-content: center; align-items: center; transition: background 0.2s;}
+    #order-confirm { background: #181824; color: #fff; border-radius: 18px; border: 2px solid #ff3939; box-shadow: 0 0 42px #000b; width: 94vw; max-width: 420px; max-height: 92vh; padding: 28px 18px 20px 18px; overflow-y: auto; text-align: center; position: relative; animation: popin .18s cubic-bezier(.77,0,.18,1.09);}
+    @keyframes popin { 0% { transform: scale(0.94) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1;}}
+    #order-confirm h3 { margin-top: 0; color: #1fff99;}
+    #order-summary { background: #19191f; color: #fff; padding: 13px 11px; border-radius: 8px; font-size: 1em; max-height: 200px; overflow: auto; text-align: left; margin-bottom: 10px; border: 1px solid #232340;}
+    #order-note-box { margin-bottom: 13px; width: 100%;}
+    #order-note { width: 100%; min-height: 48px; background: #23232b; color: #fff; border-radius: 8px; border: 1.5px solid #353545; font-size: 1em; padding: 8px 11px; box-sizing: border-box; resize: vertical;}
+    #order-confirm .payment-section { margin: 12px 0 12px 0; background: #242444; border-radius: 8px; padding: 12px 8px; font-size: 1.1em; line-height: 1.5;}
+    #order-confirm .payment-section a { color: #1fffd7; font-weight: bold; text-decoration: underline; word-break: break-all;}
+    #order-confirm .payment-section .gpay { color: #00ffae; font-weight: bold;}
+    #order-confirm .modal-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 13px; margin-top: 18px;}
+    #order-confirm .modal-buttons button { font-size: 1em; font-weight: 600; border-radius: 8px; border: none; padding: 12px 20px; background: linear-gradient(90deg,#ff3939,#d00000 75%); color: #fff; cursor: pointer; transition: background 0.14s;}
+    #order-confirm .modal-buttons button:active { background: #b30000;}
+    #order-confirm .close-x { position: absolute; right: 15px; top: 8px; font-size: 1.6em; color: #ff4545; cursor: pointer; font-weight: bold; opacity: 0.75;}
     #order-confirm .close-x:hover { opacity: 1; color: #fff;}
-    .email-help {
-      margin-top: 12px;
-      color: #ffcfcf;
-      font-size: 0.93em;
-      text-align: center;
-    }
-    .email-help b { color: #1fffd7; }
-    @media (max-width: 480px) {
-      #order-confirm { max-width: 99vw; padding: 10px 3vw; }
-      #order-summary { font-size: .98em;}
-      #order-confirm .modal-buttons button { padding: 11px 5vw;}
-    }
-    #basket {
-      background: #23232b;
-      border-radius: 14px;
-      border: 1.5px solid #353545;
-      max-width: 440px;
-      margin: 32px auto 18px auto;
-      box-shadow: 0 2px 16px #0005;
-      padding: 18px 18px 18px 18px;
-    }
-    #basket h3 { margin-top: 0; color: #ffb923; }
+    .email-help { margin-top: 12px; color: #ffcfcf; font-size: 0.93em; text-align: center;}
+    .email-help b { color: #1fffd7;}
+    @media (max-width: 480px) { #order-confirm { max-width: 99vw; padding: 10px 3vw; } #order-summary { font-size: .98em;} #order-confirm .modal-buttons button { padding: 11px 5vw;}}
+    #basket { background: #23232b; border-radius: 14px; border: 1.5px solid #353545; max-width: 440px; margin: 32px auto 18px auto; box-shadow: 0 2px 16px #0005; padding: 18px 18px 18px 18px;}
+    #basket h3 { margin-top: 0; color: #ffb923;}
     #basket-list { list-style: none; padding-left: 0;}
     #basket-list li { margin-bottom: 8px;}
     .total { font-weight: 500; margin: 4px 0;}
-    .checkout {
-      background: #23232b;
-      border-radius: 14px;
-      border: 1.5px solid #353545;
-      max-width: 440px;
-      margin: 0 auto 32px auto;
-      box-shadow: 0 2px 16px #0005;
-      padding: 22px 18px 24px 18px;
-    }
+    .checkout { background: #23232b; border-radius: 14px; border: 1.5px solid #353545; max-width: 440px; margin: 0 auto 32px auto; box-shadow: 0 2px 16px #0005; padding: 22px 18px 24px 18px;}
     .checkout h2 { color: #1fff99; margin-top: 0;}
-    .checkout-form input, .checkout-form select {
-      width: 100%; padding: 11px; border-radius: 8px;
-      border: 1.2px solid #292930; background: #1c1c20;
-      color: #fff; margin-bottom: 10px; font-size: 1em;
-    }
+    .checkout-form input, .checkout-form select { width: 100%; padding: 11px; border-radius: 8px; border: 1.2px solid #292930; background: #1c1c20; color: #fff; margin-bottom: 10px; font-size: 1em;}
     .checkout-form button { margin-top: 10px;}
     .profile-controls { margin-bottom: 8px;}
     .profile-controls label { font-size: 0.99em;}
@@ -469,7 +182,7 @@
     Always worth **more** than £20
   </span>
 </div>
-
+    <!-- Coming Soon examples -->
     <div class="coming-soon">
       <img src="comingsoon.png" alt="Coming Soon"/>
       <p>Coming Soon</p>
@@ -496,6 +209,7 @@
   <ul id="basket-list"></ul>
   <button onclick="emptyBasket()">🗑️ Empty Basket</button>
   <p class="total">Shipping: £<span id="shipping-cost">0.00</span></p>
+  <p class="total" id="discount-row" style="display:none;">Discount: -£<span id="discount-amount">0.00</span></p>
   <p class="total" id="basket-total">Total: £0</p>
   <label for="shipping">🚐 Shipping Method:</label>
   <select id="shipping" onchange="updateBasketDisplay()">
@@ -503,6 +217,12 @@
     <option value="3.99">UK Standard – £3.99 (2–4 days)</option>
     <option value="6.99">Express – £6.99 (Next Day)</option>
   </select>
+  <div style="margin:18px 0 0 0;">
+    <label for="discountCode" style="font-weight:bold;">💸 Discount Code:</label>
+    <input type="text" id="discountCode" placeholder="Enter code" style="width:60%;padding:8px 9px;border-radius:7px;border:1.3px solid #222;margin-left:10px;"/>
+    <button onclick="applyDiscountCode()" style="padding:8px 15px;font-weight:700;background:#1fff99;color:#202; border-radius:7px;border:none;margin-left:6px;cursor:pointer;">Apply</button>
+    <span id="discountMsg" style="margin-left:12px;color:#ffb923;font-weight:700;"></span>
+  </div>
   <div style="background:#1f1f1f;color:#ffcc00;padding:10px;margin-top:15px;border-radius:8px;">
     ⚠️ <strong>Please Note:</strong><br/>All items are handmade or customised to order.<br/>🕒 <strong>Please allow time for your item to be built and dispatched.</strong>
     <br/><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:bold;">
@@ -515,7 +235,8 @@
   <h2>Checkout</h2>
   <div class="checkout-form">
     <input id="name" placeholder="Full Name" required type="text">
-    <input id="email" placeholder="Email" required type="email"/>
+    <input id="email" placeholder="Email" required type="email" oninput="validateEmail()"/>
+    <span id="emailWarning" style="color:#ff3939;font-weight:bold;display:none;">⚠️ Please enter a valid email address</span>
     <input id="phone" placeholder="Phone Number" required type="text"/>
     <input id="address1" placeholder="Street Address" required type="text"/>
     <input id="address2" placeholder="Town/City" required type="text"/>
@@ -525,7 +246,6 @@
   </div>
 </div>
 
-<!-- Popup Modal for Order Summary & Payment -->
 <div id="order-confirm-bg">
   <div id="order-confirm">
     <span class="close-x" onclick="closeOrderModal()">&times;</span>
@@ -542,7 +262,8 @@
     <div class="modal-buttons">
       <button id="copyAndEmailBtn" onclick="copyOrderAndEmail()">Copy &amp; Email Order</button>
       <button id="copyOnlyBtn" onclick="copyOrderOnly()">Copy Order Only</button>
-      <button id="payNowBtn" style="display:none;" onclick="window.open('https://paypal.me/healthandhit','_blank');">Pay Now (PayPal)</button>
+    <button id="payNowBtn" style="display:none;" onclick="payWithPaypal()">Pay Now (PayPal)</button>
+
       <button onclick="closeOrderModal()">Close</button>
     </div>
     <div class="email-help">
@@ -553,6 +274,7 @@
 
 <script>
   let basket = JSON.parse(localStorage.getItem("basket")) || [];
+  let discount = { code: '', type: '', value: 0 };
 
   function addToBasket(name, price, sizeId, qtyId) {
     const size = sizeId ? document.getElementById(sizeId).value : null;
@@ -567,26 +289,65 @@
     basketPop();
   }
 
+  function applyDiscountCode() {
+    const code = document.getElementById('discountCode').value.trim().toUpperCase();
+    const msg = document.getElementById('discountMsg');
+    if (!code) {
+      discount = { code: '', type: '', value: 0 };
+      msg.textContent = '';
+    } else if (code === 'HIT5') {
+      discount = { code, type: 'percent', value: 5 };
+      msg.textContent = '5% off applied!';
+    } else if (code === 'HIT10') {
+      discount = { code, type: 'percent', value: 10 };
+      msg.textContent = '10% off applied!';
+    } else if (code === 'HIT20') {
+      discount = { code, type: 'percent', value: 20 };
+      msg.textContent = '20% off applied!';
+    } else if (code === 'HITFREE') {
+      discount = { code, type: 'free_delivery', value: 0 };
+      msg.textContent = 'Free delivery applied!';
+    } else {
+      discount = { code: '', type: '', value: 0 };
+      msg.textContent = 'Invalid code';
+    }
+    updateBasketDisplay();
+  }
+
   function updateBasketDisplay() {
     const list = document.getElementById('basket-list');
     const totalDisplay = document.getElementById('basket-total');
     const shippingDisplay = document.getElementById('shipping-cost');
     const basketCount = document.getElementById('basket-count');
+    const discountRow = document.getElementById('discount-row');
+    const discountAmt = document.getElementById('discount-amount');
     if(!list) return;
     list.innerHTML = '';
-    let total = 0;
+    let subtotal = 0;
     let count = 0;
     basket.forEach((item, index) => {
       const itemTotal = item.price * item.qty;
       const li = document.createElement('li');
       li.innerHTML = `${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${itemTotal.toFixed(2)} <button class='remove-btn' onclick="removeItem(${index})">❌</button>`;
       list.appendChild(li);
-      total += itemTotal;
+      subtotal += itemTotal;
       count += item.qty;
     });
-    const shipping = document.getElementById('shipping') ? parseFloat(document.getElementById('shipping').value) : 0;
+    let shipping = document.getElementById('shipping') ? parseFloat(document.getElementById('shipping').value) : 0;
+    let discountValue = 0;
+    if (discount.code === 'HIT5') discountValue = subtotal * 0.05;
+    if (discount.code === 'HIT10') discountValue = subtotal * 0.10;
+    if (discount.code === 'HIT20') discountValue = subtotal * 0.20;
+    if (discount.code === 'HITFREE') shipping = 0;
+    if (discountValue > 0) {
+      discountRow.style.display = '';
+      discountAmt.textContent = discountValue.toFixed(2);
+    } else {
+      discountRow.style.display = 'none';
+      discountAmt.textContent = '0.00';
+    }
     if(shippingDisplay) shippingDisplay.textContent = shipping.toFixed(2);
-    if(totalDisplay) totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)}`;
+    if(totalDisplay) totalDisplay.textContent = `Total: £${Math.max(0, subtotal - discountValue + shipping).toFixed(2)}`;
     if (basketCount) basketCount.textContent = count;
   }
 
@@ -600,6 +361,9 @@
   function emptyBasket() {
     if (confirm("Empty your basket?")) {
       basket = [];
+      discount = { code: '', type: '', value: 0 };
+      document.getElementById('discountCode').value = '';
+      document.getElementById('discountMsg').textContent = '';
       localStorage.removeItem("basket");
       updateBasketDisplay();
       basketPop();
@@ -611,7 +375,6 @@
       alert("Your basket is empty. Please add items before checking out!");
       return;
     }
-
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const phone = document.getElementById('phone').value.trim();
@@ -619,23 +382,34 @@
     const address2 = document.getElementById('address2').value.trim();
     const postcode = document.getElementById('postcode').value.trim();
     const shippingLabel = document.getElementById('shipping').selectedOptions[0].text;
-    const shippingPrice = parseFloat(document.getElementById('shipping').value);
+    let shippingPrice = parseFloat(document.getElementById('shipping').value);
 
+    if (discount.code === 'HITFREE') shippingPrice = 0;
     if (!name || !email || !phone || !address1 || !address2 || !postcode || !document.getElementById("stockAgree").checked) {
       alert("Please complete all fields and agree to the build time.");
       return;
     }
+    let subtotal = 0;
+    basket.forEach(item => subtotal += item.price * item.qty);
+    let discountValue = 0;
+    if (discount.code === 'HIT5') discountValue = subtotal * 0.05;
+    if (discount.code === 'HIT10') discountValue = subtotal * 0.10;
+    if (discount.code === 'HIT20') discountValue = subtotal * 0.20;
+
     let summary = `--- HealthAndHIT Gear Order ---\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nAddress:\n${address1}\n${address2}\n${postcode}\nShipping Method: ${shippingLabel}\n\nOrdered Items:\n`;
-    let total = 0;
     basket.forEach(item => {
       const lineTotal = item.price * item.qty;
       summary += `- ${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${lineTotal.toFixed(2)}\n`;
-      total += lineTotal;
     });
-    summary += `\nShipping: £${shippingPrice.toFixed(2)}\nTotal: £${(total + shippingPrice).toFixed(2)}\n\n⚠️ This is an order confirmation only.\nYour items will be shipped after payment is received.\n\nSent via HealthAndHIT Shop`;
+    summary += `\nSubtotal: £${subtotal.toFixed(2)}`;
+    if (discountValue > 0) summary += `\nDiscount (${discount.code}): -£${discountValue.toFixed(2)}`;
+    summary += `\nShipping: £${shippingPrice.toFixed(2)}\nTotal: £${Math.max(0, subtotal - discountValue + shippingPrice).toFixed(2)}\n\n⚠️ This is an order confirmation only.\nYour items will be shipped after payment is received.\n\nSent via HealthAndHIT Shop`;
 
     document.getElementById('order-summary').textContent = summary;
     basket = [];
+    discount = { code: '', type: '', value: 0 };
+    document.getElementById('discountCode').value = '';
+    document.getElementById('discountMsg').textContent = '';
     localStorage.removeItem("basket");
     updateBasketDisplay();
 
@@ -655,7 +429,6 @@
     const summary = document.getElementById('order-summary').textContent;
     const note = document.getElementById('order-note').value.trim();
     let emailBody = note ? `NOTE: ${note}\n\n${summary}` : summary;
-
     if (navigator.clipboard) {
       navigator.clipboard.writeText(emailBody);
     } else {
@@ -667,7 +440,6 @@
       document.body.removeChild(temp);
     }
     window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(emailBody);
-
     document.getElementById('payNowBtn').style.display = '';
     document.getElementById('copyAndEmailBtn').disabled = true;
     document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
@@ -677,7 +449,6 @@
     const summary = document.getElementById('order-summary').textContent;
     const note = document.getElementById('order-note').value.trim();
     let emailBody = note ? `NOTE: ${note}\n\n${summary}` : summary;
-
     if (navigator.clipboard) {
       navigator.clipboard.writeText(emailBody);
       alert("Order copied! Paste it into your email app.");
@@ -703,12 +474,111 @@
     const el = document.getElementById('basket-float');
     if (!el) return;
     el.style.animation = 'none';
-    // re-trigger animation
     void el.offsetWidth;
     el.style.animation = 'basketPop .3s cubic-bezier(.8,0,.4,1.1)';
   }
 
   document.addEventListener('DOMContentLoaded', updateBasketDisplay);
+function getCurrentTotalForPaypal() {
+  let subtotal = 0;
+  basket.forEach(item => subtotal += item.price * item.qty);
+  let shipping = document.getElementById('shipping') ? parseFloat(document.getElementById('shipping').value) : 0;
+  if (discount.code === 'HITFREE') shipping = 0;
+  let discountValue = 0;
+  if (discount.code === 'HIT5') discountValue = subtotal * 0.05;
+  if (discount.code === 'HIT10') discountValue = subtotal * 0.10;
+  if (discount.code === 'HIT20') discountValue = subtotal * 0.20;
+  let total = Math.max(0, subtotal - discountValue + shipping);
+  return total.toFixed(2);
+}
+
+// Called when user clicks Pay Now
+function payWithPaypal() {
+  // Read current summary box value, as that's what was sent
+  // (use the confirmed value from summary if checkout is complete)
+  let orderSummary = document.getElementById('order-summary').textContent;
+  // Try to extract total from summary (always at "Total: £X.XX")
+  let totalMatch = orderSummary.match(/Total: £([\d.]+)/);
+  let total = '0.00';
+  if (totalMatch) total = totalMatch[1];
+  else total = getCurrentTotalForPaypal(); // fallback
+
+  // Open PayPal.me with correct amount (currency is set to GBP in your PayPal settings)
+  window.open('https://paypal.me/healthandhit/' + total, '_blank');
+}
+
+</script>
+<script>
+  // ... previous script above ...
+
+  function validateEmail() {
+    const email = document.getElementById('email').value.trim();
+    const warning = document.getElementById('emailWarning');
+    // Basic email regex
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    warning.style.display = email && !valid ? 'block' : 'none';
+    return valid;
+  }
+
+  function handleCheckout() {
+    if (!basket.length) {
+      alert("Your basket is empty. Please add items before checking out!");
+      return;
+    }
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address1 = document.getElementById('address1').value.trim();
+    const address2 = document.getElementById('address2').value.trim();
+    const postcode = document.getElementById('postcode').value.trim();
+    const shippingLabel = document.getElementById('shipping').selectedOptions[0].text;
+    let shippingPrice = parseFloat(document.getElementById('shipping').value);
+
+    // EMAIL VALIDATION CHECK
+    if (!validateEmail()) {
+      document.getElementById('email').focus();
+      document.getElementById('emailWarning').style.display = 'block';
+      return;
+    }
+
+    if (discount.code === 'HITFREE') shippingPrice = 0;
+    if (!name || !email || !phone || !address1 || !address2 || !postcode || !document.getElementById("stockAgree").checked) {
+      alert("Please complete all fields and agree to the build time.");
+      return;
+    }
+    let subtotal = 0;
+    basket.forEach(item => subtotal += item.price * item.qty);
+    let discountValue = 0;
+    if (discount.code === 'HIT5') discountValue = subtotal * 0.05;
+    if (discount.code === 'HIT10') discountValue = subtotal * 0.10;
+    if (discount.code === 'HIT20') discountValue = subtotal * 0.20;
+
+    let summary = `--- HealthAndHIT Gear Order ---\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nAddress:\n${address1}\n${address2}\n${postcode}\nShipping Method: ${shippingLabel}\n\nOrdered Items:\n`;
+    basket.forEach(item => {
+      const lineTotal = item.price * item.qty;
+      summary += `- ${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${lineTotal.toFixed(2)}\n`;
+    });
+    summary += `\nSubtotal: £${subtotal.toFixed(2)}`;
+    if (discountValue > 0) summary += `\nDiscount (${discount.code}): -£${discountValue.toFixed(2)}`;
+    summary += `\nShipping: £${shippingPrice.toFixed(2)}\nTotal: £${Math.max(0, subtotal - discountValue + shippingPrice).toFixed(2)}\n\n⚠️ This is an order confirmation only.\nYour items will be shipped after payment is received.\n\nSent via HealthAndHIT Shop`;
+
+    document.getElementById('order-summary').textContent = summary;
+    basket = [];
+    discount = { code: '', type: '', value: 0 };
+    document.getElementById('discountCode').value = '';
+    document.getElementById('discountMsg').textContent = '';
+    localStorage.removeItem("basket");
+    updateBasketDisplay();
+
+    document.getElementById('payNowBtn').style.display = 'none';
+    document.getElementById('copyAndEmailBtn').disabled = false;
+    document.getElementById('copyAndEmailBtn').textContent = "Copy & Email Order";
+    document.getElementById('order-confirm-bg').style.display = 'flex';
+    document.getElementById('order-note').value = '';
+    basketPop();
+  }
+
+  // ...rest of your script...
 </script>
 </body>
 </html>

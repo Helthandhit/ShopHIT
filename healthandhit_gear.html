@@ -347,11 +347,11 @@
     </div>
     <div class="product">
       <img alt="Sublimated Cap" src="subcap.png"/>
-      <p>Sublimated Cap – £20</p>
+      <p>Sublimated Cap – £12</p>
       <div class="options">
-        <select id="size-subcap"><option>Size</option><option>S</option><option>M</option><option>L</option><option>XL</option></select>
+       
         <input id="qty-subcap" min="1" type="number" value="1"/>
-        <button onclick="addToBasket('Sublimated Cap', 20, 'size-subcap', 'qty-subcap')">Add</button>
+        <button onclick="addToBasket('Sublimated Cap', 12, 'qty-subcap')">Add</button>
       </div>
     </div>
     <div class="product">
@@ -453,8 +453,7 @@
     <input id="address2" placeholder="Town/City" required type="text"/>
     <input id="postcode" placeholder="Postcode" required type="text"/>
     <div class="profile-controls">
-      <label><input id="saveProfile" type="checkbox"/> Save for future purchases</label>
-      <button class="clear-profile" type="button" onclick="clearProfile()">❌ Remove all saved details</button>
+    
     </div>
     <br>
     <button type="button" onclick="handleCheckout()">Place Order</button>

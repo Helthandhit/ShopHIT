@@ -19,6 +19,65 @@
       font-size: 2em;
       font-weight: 700;
     }
+    /* ===== Basket Icon Top Right ===== */
+    #basket-float {
+      position: fixed;
+      top: 23px;
+      right: 34px;
+      background: #23232b;
+      border-radius: 50%;
+      border: 2.5px solid #ff3939;
+      box-shadow: 0 4px 18px #000a;
+      z-index: 999;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: box-shadow .17s, transform .14s;
+      animation: basketPop .2s;
+    }
+    #basket-float:active {
+      box-shadow: 0 2px 6px #ff272755, 0 2px 12px #0008;
+      transform: scale(.98);
+    }
+    #basket-float svg {
+      width: 28px;
+      height: 28px;
+      fill: #ff3939;
+      display: block;
+    }
+    #basket-count {
+      position: absolute;
+      top: 4px; right: 7px;
+      background: #1fff99;
+      color: #1d1d1d;
+      font-weight: 800;
+      font-size: 1.05em;
+      min-width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 7px #111c;
+      border: 2px solid #23232b;
+      pointer-events: none;
+      z-index: 1001;
+      transition: background 0.14s;
+    }
+    @keyframes basketPop {
+      0% { transform: scale(0.7); opacity: 0.3;}
+      75% { transform: scale(1.12);}
+      100% { transform: scale(1); opacity: 1;}
+    }
+    @media (max-width: 600px) {
+      #basket-float { top: 11px; right: 12px; width: 44px; height: 44px;}
+      #basket-float svg { width: 22px; height: 22px;}
+      #basket-count { font-size: .98em; min-width: 18px; height: 18px; top: 2px; right: 5px;}
+    }
+
     .category {
       margin: 0 auto 24px auto;
       max-width: 1200px;
@@ -144,7 +203,6 @@
       .products { grid-template-columns: 1fr; }
       .product, .coming-soon { max-width: 98vw; }
     }
-
     #order-confirm-bg {
       display: none;
       position: fixed;
@@ -262,7 +320,6 @@
       #order-summary { font-size: .98em;}
       #order-confirm .modal-buttons button { padding: 11px 5vw;}
     }
-    /*--- Basket/Checkout Styles (keep same as before or style to fit your layout) ---*/
     #basket {
       background: #23232b;
       border-radius: 14px;
@@ -299,6 +356,12 @@
   </style>
 </head>
 <body>
+<!-- Floating Basket Icon -->
+<div id="basket-float" onclick="scrollToBasket()">
+  <svg viewBox="0 0 24 24"><path d="M7 21q-.825 0-1.412-.587Q5 19.825 5 19q0-.825.588-1.413Q6.175 17 7 17q.825 0 1.413.587Q9 18.175 9 19q0 .825-.587 1.413Q7.825 21 7 21Zm10 0q-.825 0-1.413-.587Q16 19.825 16 19q0-.825.587-1.413Q17.175 17 18 17q.825 0 1.413.587Q20 18.175 20 19q0 .825-.587 1.413Q18.825 21 18 21ZM6.2 17q-.7 0-1.088-.625-.387-.625-.112-1.275l2.5-4.975L5.1 5H2V3h3.35l3.65 7.6q.225.5.713.75.487.25 1.037.25h6.3q.725 0 1.162.65.438.65.138 1.35l-2.725 5.275q-.3.575-.938.575ZM8.55 11l1.6 3.2h5.225l2.225-4.275H9.625Z"/></svg>
+  <span id="basket-count">0</span>
+</div>
+
 <h1>HealthAndHIT Gear</h1>
 <div class="category">
   <div class="products">
@@ -349,9 +412,8 @@
       <img alt="Sublimated Cap" src="subcap.png"/>
       <p>Sublimated Cap – £12</p>
       <div class="options">
-       
         <input id="qty-subcap" min="1" type="number" value="1"/>
-        <button onclick="addToBasket('Sublimated Cap', 12, 'qty-subcap')">Add</button>
+        <button onclick="addToBasket('Sublimated Cap', 12, null, 'qty-subcap')">Add</button>
       </div>
     </div>
     <div class="product">
@@ -395,7 +457,7 @@
         <button onclick="addToBasket('T-shirt', 12, 'size-tshirt', 'qty-tshirt')">Add</button>
       </div>
     </div>
-    <!-- 4 "Coming Soon" boxes (all identical) -->
+    <!-- 4 "Coming Soon" boxes -->
     <div class="coming-soon">
       <img src="comingsoon.png" alt="Coming Soon"/>
       <p>Coming Soon</p>
@@ -452,9 +514,6 @@
     <input id="address1" placeholder="Street Address" required type="text"/>
     <input id="address2" placeholder="Town/City" required type="text"/>
     <input id="postcode" placeholder="Postcode" required type="text"/>
-    <div class="profile-controls">
-    
-    </div>
     <br>
     <button type="button" onclick="handleCheckout()">Place Order</button>
   </div>
@@ -499,31 +558,37 @@
     basket.push({ name, price, size, qty });
     localStorage.setItem('basket', JSON.stringify(basket));
     updateBasketDisplay();
+    basketPop();
   }
 
   function updateBasketDisplay() {
     const list = document.getElementById('basket-list');
     const totalDisplay = document.getElementById('basket-total');
     const shippingDisplay = document.getElementById('shipping-cost');
+    const basketCount = document.getElementById('basket-count');
     if(!list) return;
     list.innerHTML = '';
     let total = 0;
+    let count = 0;
     basket.forEach((item, index) => {
       const itemTotal = item.price * item.qty;
       const li = document.createElement('li');
       li.innerHTML = `${item.qty} x ${item.name}${item.size ? ' (' + item.size + ')' : ''} – £${itemTotal.toFixed(2)} <button class='remove-btn' onclick="removeItem(${index})">❌</button>`;
       list.appendChild(li);
       total += itemTotal;
+      count += item.qty;
     });
     const shipping = document.getElementById('shipping') ? parseFloat(document.getElementById('shipping').value) : 0;
     if(shippingDisplay) shippingDisplay.textContent = shipping.toFixed(2);
     if(totalDisplay) totalDisplay.textContent = `Total: £${(total + shipping).toFixed(2)}`;
+    if (basketCount) basketCount.textContent = count;
   }
 
   function removeItem(index) {
     basket.splice(index, 1);
     localStorage.setItem("basket", JSON.stringify(basket));
     updateBasketDisplay();
+    basketPop();
   }
 
   function emptyBasket() {
@@ -531,18 +596,8 @@
       basket = [];
       localStorage.removeItem("basket");
       updateBasketDisplay();
+      basketPop();
     }
-  }
-
-  function clearProfile() {
-    localStorage.removeItem("clientProfile");
-    alert("Saved details removed.");
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("address1").value = "";
-    document.getElementById("address2").value = "";
-    document.getElementById("postcode").value = "";
   }
 
   function handleCheckout() {
@@ -578,12 +633,12 @@
     localStorage.removeItem("basket");
     updateBasketDisplay();
 
-    // Reset modal state
     document.getElementById('payNowBtn').style.display = 'none';
     document.getElementById('copyAndEmailBtn').disabled = false;
     document.getElementById('copyAndEmailBtn').textContent = "Copy & Email Order";
     document.getElementById('order-confirm-bg').style.display = 'flex';
     document.getElementById('order-note').value = '';
+    basketPop();
   }
 
   function closeOrderModal() {
@@ -595,7 +650,6 @@
     const note = document.getElementById('order-note').value.trim();
     let emailBody = note ? `NOTE: ${note}\n\n${summary}` : summary;
 
-    // Try to copy
     if (navigator.clipboard) {
       navigator.clipboard.writeText(emailBody);
     } else {
@@ -606,10 +660,8 @@
       document.execCommand('copy');
       document.body.removeChild(temp);
     }
-    // Open mailto link (opens default email app if possible)
     window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(emailBody);
 
-    // Show payment button and feedback
     document.getElementById('payNowBtn').style.display = '';
     document.getElementById('copyAndEmailBtn').disabled = true;
     document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
@@ -632,6 +684,22 @@
       document.body.removeChild(temp);
       alert("Order copied! Paste it into your email app.");
     }
+  }
+
+  function scrollToBasket() {
+    const basketDiv = document.getElementById('basket');
+    if (basketDiv) {
+      basketDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function basketPop() {
+    const el = document.getElementById('basket-float');
+    if (!el) return;
+    el.style.animation = 'none';
+    // re-trigger animation
+    void el.offsetWidth;
+    el.style.animation = 'basketPop .3s cubic-bezier(.8,0,.4,1.1)';
   }
 
   document.addEventListener('DOMContentLoaded', updateBasketDisplay);

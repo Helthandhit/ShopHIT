@@ -409,6 +409,12 @@
   }
 
   function handleCheckout() {
+    // STOP checkout if basket is empty
+    if (!basket.length) {
+      alert("Your basket is empty. Please add items before checking out!");
+      return;
+    }
+
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const phone = document.getElementById('phone').value.trim();
@@ -447,31 +453,28 @@
     document.getElementById('order-confirm-bg').style.display = 'none';
   }
 
-function copyOrderAndEmail() {
-  const summary = document.getElementById('order-summary').textContent;
-  
-  // Try to copy
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(summary);
-  } else {
-    const temp = document.createElement('textarea');
-    temp.value = summary;
-    document.body.appendChild(temp);
-    temp.select();
-    document.execCommand('copy');
-    document.body.removeChild(temp);
+  function copyOrderAndEmail() {
+    const summary = document.getElementById('order-summary').textContent;
+
+    // Try to copy
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(summary);
+    } else {
+      const temp = document.createElement('textarea');
+      temp.value = summary;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+    }
+    // Open mailto link (opens default email app)
+    window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(summary);
+
+    // Show payment button and feedback
+    document.getElementById('payNowBtn').style.display = '';
+    document.getElementById('copyAndEmailBtn').disabled = true;
+    document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
   }
-  // Open mailto link (opens default email app)
-  window.location.href = 'mailto:healthandhit@gmail.com?subject=New%20Order&body=' + encodeURIComponent(summary);
-
-  // Show payment button and feedback
-  document.getElementById('payNowBtn').style.display = '';
-  document.getElementById('copyAndEmailBtn').disabled = true;
-  document.getElementById('copyAndEmailBtn').textContent = "Order Sent!";
-}
-
-
-
 
   document.addEventListener('DOMContentLoaded', updateBasketDisplay);
 </script>

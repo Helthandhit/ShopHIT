@@ -457,13 +457,19 @@
         <button onclick="addToBasket('T-shirt', 12, 'size-tshirt', 'qty-tshirt')">Add</button>
       </div>
     </div>
-    <!-- 4 "Coming Soon" boxes -->
-    <div class="coming-soon">
-      <img src="comingsoon.png" alt="Coming Soon"/>
-      <p>Coming Soon</p>
-      <div class="options"></div>
-      <span class="coming-label">Coming Soon</span>
-    </div>
+  <div class="product">
+  <img alt="Mystery Bundle" src="mystery.png"/>
+  <p>Mystery Bundle – £20</p>
+  <div class="options">
+    <input id="qty-mystery" min="1" type="number" value="1"/>
+    <button onclick="addToBasket('Mystery Bundle', 20, null, 'qty-mystery')">Add</button>
+  </div>
+  <span class="coming-label" style="background:#1fff99; color:#242424; margin-top:12px;">
+    🔥 A random mix of HealthAndHIT gear!<br>
+    Always worth **more** than £20
+  </span>
+</div>
+
     <div class="coming-soon">
       <img src="comingsoon.png" alt="Coming Soon"/>
       <p>Coming Soon</p>

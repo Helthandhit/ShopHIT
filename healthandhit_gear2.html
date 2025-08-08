@@ -6,8 +6,9 @@
 <title>HealthAndHIT — Shop</title>
 <meta name="color-scheme" content="dark light">
 
-<!-- PayPal (sandbox) -->
-<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=GBP"></script>
+<!-- PayPal (UK sandbox) -->
+<!-- Replace YOUR_UK_SANDBOX_CLIENT_ID with the client ID from your UK Business sandbox app -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_UK_SANDBOX_CLIENT_ID&currency=GBP&intent=CAPTURE&locale=en_GB"></script>
 
 <style>
 :root {
@@ -182,7 +183,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 
         <!-- Discount code input -->
         <div class="discount-row">
-          <input id="discountCode" placeholder="Discount code"/>
+          <input id="discountCode" placeholder="Discount code (HIT5, HIT10, HIT20, HITFREE)"/>
           <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
         </div>
         <div class="muted" id="discountMsg" style="margin-top:4px;"></div>
@@ -245,20 +246,20 @@ const DISCOUNT_CODES = {
 let appliedDiscount = null;
 let emailSent = false;
 
-/* Updated to use your local image files */
+/* Local image files */
 const PRODUCTS=[
-  {id:'tee',      name:'HIT T-Shirt',      price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
-  {id:'vest',     name:'HIT Vest',         price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
-  {id:'jumper',   name:'HIT Jumper',       price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
-  {id:'hoodie',   name:'HIT Hoodie',       price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
-  {id:'cap',      name:'HIT Cap',          price:15.00,                                   img:'cap.png'},
-  {id:'subcap',   name:'Sublimated Cap',   price:12.00,                                   img:'subcap.png'},
-  {id:'mug',      name:'HIT Mug',          price:12.00,                                   img:'mug.png'},
-  {id:'bottle',   name:'HIT Bottle',       price:15.00,                                   img:'bottle.png'},
-  {id:'keyring',  name:'HIT Keyring',      price:5.00,                                    img:'keyring.png'},
-  {id:'gymbag',   name:'HIT Gym Bag',      price:12.00,                                   img:'gymbag.png'},
-  {id:'towel',    name:'HIT Quick Dry Towel',price:10.00,                                  img:'towel.jpg'},
-  {id:'mystery',  name:'Mystery Bundle',   price:20.00,                                   img:'mystery.png'}
+  {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
+  {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
+  {id:'jumper',   name:'HIT Jumper',          price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
+  {id:'hoodie',   name:'HIT Hoodie',          price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
+  {id:'cap',      name:'HIT Cap',             price:15.00,                                   img:'cap.png'},
+  {id:'subcap',   name:'Sublimated Cap',      price:12.00,                                   img:'subcap.png'},
+  {id:'mug',      name:'HIT Mug',             price:12.00,                                   img:'mug.png'},
+  {id:'bottle',   name:'HIT Bottle',          price:15.00,                                   img:'bottle.png'},
+  {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
+  {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
+  {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
+  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
 ];
 
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
@@ -458,7 +459,7 @@ document.getElementById('emailOrderBtn').onclick=async()=>{
   document.getElementById('paypal-button-container').style.display='';
 };
 
-/* PayPal Buttons (sandbox) — uses live cart total at click time, requires email sent */
+/* PayPal Buttons (UK sandbox) */
 paypal.Buttons({
   style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
   onClick: function(){
@@ -469,10 +470,10 @@ paypal.Buttons({
     const {grand}=computeTotals();
     return actions.order.create({
       purchase_units: [{
-        amount: { value: grand.toFixed(2) },
+        amount: { currency_code: 'GBP', value: grand.toFixed(2) },
         description: 'HealthAndHIT Shop Order'
       }],
-      application_context: { shipping_preference: 'NO_SHIPPING' }
+      application_context: { shipping_preference: 'NO_SHIPPING', locale: 'en-GB' }
     });
   },
   onApprove: function(data, actions) {

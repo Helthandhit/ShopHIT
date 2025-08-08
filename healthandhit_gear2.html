@@ -7,54 +7,155 @@
 <meta name="color-scheme" content="dark light">
 
 <!-- PayPal (UK sandbox) -->
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_UK_SANDBOX_CLIENT_ID&currency=GBP&intent=CAPTURE&locale=en_GB" defer></script>
+<!-- TODO: paste your UK sandbox client ID -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_UK_SANDBOX_CLIENT_ID&currency=GBP&intent=CAPTURE&locale=en_GB"></script>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-:root { --bg:#191a1e; --panel:#23242b; --card:#26272f; --accent:#ff3939; --accent-2:#ff6b6b;
-  --text:#ffffff; --muted:#c9c9cf; --ok:#48c774; --warn:#ffb020; --bad:#ff4d4d; --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35); }
-*{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+:root {
+  --bg:#191a1e; --panel:#23242b; --card:#26272f; --accent:#ff3939; --accent-2:#ff6b6b;
+  --text:#ffffff; --muted:#c9c9cf; --ok:#48c774; --warn:#ffb020; --bad:#ff4d4d;
+  --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+a{color:inherit;text-decoration:none}
+
+/* Header */
 header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e23 0%,#1a1b20 100%);border-bottom:1px solid #2f3038}
 .wrap{max-width:1160px;margin:0 auto;padding:16px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ff6b6b,#ff3939 60%,#b70000);box-shadow:0 0 0 3px #2a2b31}
 .brand h1{font-size:1.25rem;margin:0;font-weight:700;letter-spacing:.3px}
-.basket-fab{position:fixed; right:18px; top:18px; display:flex; align-items:center; gap:10px; background:var(--accent); color:#fff; padding:10px 14px; border-radius:999px; box-shadow:var(--shadow); cursor:pointer; z-index:60; border:0; font-weight:700;}
+
+/* Basket FAB */
+.basket-fab{
+  position:fixed; right:18px; top:18px; display:flex; align-items:center; gap:10px;
+  background:var(--accent); color:#fff; padding:10px 14px; border-radius:999px; box-shadow:var(--shadow);
+  cursor:pointer; z-index:60; border:0; font-weight:700;
+}
 .basket-fab .count{background:#000; padding:2px 8px; border-radius:999px; font-size:.85rem}
+
+/* Hero notice */
 .hero{padding:18px 16px 8px}
 .hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch}
+
+/* Product grid (uniform card heights) */
+.grid{
+  display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch
+}
 @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid #2c2d36;display:grid;grid-template-rows:auto 1fr;height:100%}
-.media{height:180px; background:#101015; display:flex; align-items:center; justify-content:center;}
+
+.card{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  overflow:hidden;border:1px solid #2c2d36;display:grid;grid-template-rows:auto 1fr;height:100%
+}
+.media{
+  height:180px; background:#101015; display:flex; align-items:center; justify-content:center;
+}
 .media img{width:100%;height:100%;object-fit:contain}
-.card .body{padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px}
-.title{font-weight:700;margin:0 0 4px}.price{color:#ffb923;font-weight:700}.muted{color:var(--muted);font-size:.9rem}
+
+.card .body{
+  padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px
+}
+.title{font-weight:700;margin:0 0 4px}
+.price{color:#ffb923;font-weight:700}
+.muted{color:var(--muted);font-size:.9rem}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-select, input[type="number"], input[type="text"], input[type="email"], textarea{width:100%; padding:10px 12px; border-radius:10px; border:1px solid #343542; background:#1f2027; color:#fff;}
+select, input[type="number"], input[type="text"], input[type="email"], textarea{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid #343542; background:#1f2027; color:#fff;
+}
 .qty{width:110px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-.btn-accent{background:var(--accent);color:#fff}.btn-bad{background:var(--bad);color:#fff}.btn-block{width:100%}.small{font-size:.92rem}
-.drawer{position:fixed; inset:0; display:none; z-index:70}.drawer.open{display:block}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-bad{background:var(--bad);color:#fff}
+.btn-block{width:100%}
+.small{font-size:.92rem}
+
+/* Drawer */
+.drawer{position:fixed; inset:0; display:none; z-index:70}
+.drawer.open{display:block}
 .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45)}
-.panel{position:absolute; right:0; top:0; bottom:0; width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33; display:flex; flex-direction:column; height:100svh; max-height:100svh;}
-.drawer-content{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 16px;}
-.panel header .wrap{padding:14px 16px}.section-title{padding:12px 0 0 0; font-weight:700}
+.panel{
+  position:absolute; right:0; top:0; bottom:0;
+  width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33;
+  display:flex; flex-direction:column; height:100svh; max-height:100svh;
+}
+/* scrollable area inc. cart + totals + form */
+.drawer-content{
+  flex:1; min-height:0;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:0 16px 16px;
+}
+.panel header .wrap{padding:14px 16px}
+.section-title{padding:12px 0 0 0; font-weight:700}
+
+/* Lines */
 .cart-items{display:flex;flex-direction:column;gap:12px; padding-top:10px}
-.cart-line{display:grid;grid-template-columns:1fr auto;gap:10px;border:1px solid #2b2c36;border-radius:12px;padding:12px;background:#20222a}
+.cart-line{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  border:1px solid #2b2c36;border-radius:12px;padding:12px;background:#20222a
+}
 .cart-line .meta{font-size:.9rem;color:var(--muted)}
+
+/* Totals */
 .totals{border-top:1px dashed #353644;margin-top:12px;padding-top:10px;color:#ddd}
-.totals .row2{display:flex;justify-content:space-between;margin:6px 0}.totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
-.discount-row{display:flex;gap:8px;align-items:center;margin-top:10px}.discount-row input{flex:1}
-.form .grid{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:680px){.form .grid{grid-template-columns:1fr 1fr}}
-.form .grid .full{grid-column:1/-1} input.error, textarea.error, select.error{outline:2px solid var(--bad);}
-.checkout-actions{position:sticky; bottom:0; inset-inline:0; background:#181920; border-top:1px solid #2b2c33; padding:12px 16px; display:flex; flex-direction:column; gap:10px;}
-.gate{border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;}
-#discountPopup{position: fixed; top:0; left:0; right:0; bottom:0;background: rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index: 999;}
-#discountPopup .box{background: var(--card); padding: 20px; border-radius: var(--radius); max-width: 320px; text-align:center; box-shadow: var(--shadow);}
-#discountPopup button{margin-top: 10px; padding: 8px 14px; border: none; background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer;}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
+.totals .row2{display:flex;justify-content:space-between;margin:6px 0}
+.totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
+
+/* Discount row */
+.discount-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+.discount-row input{flex:1}
+
+/* Address form */
+.form .grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:680px){.form .grid{grid-template-columns:1fr 1fr}}
+.form .grid .full{grid-column:1/-1}
+input.error, textarea.error, select.error{outline:2px solid var(--bad);}
+
+/* Sticky action bar */
+.checkout-actions{
+  position:sticky; bottom:0; inset-inline:0;
+  background:#181920; border-top:1px solid #2b2c33;
+  padding:12px 16px; display:flex; flex-direction:column; gap:10px;
+}
+.gate{
+  border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;
+}
+
+/* Discount popup */
+#discountPopup {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center;
+  z-index: 999;
+}
+#discountPopup .box {
+  background: var(--card); padding: 20px; border-radius: var(--radius);
+  max-width: 320px; text-align:center; box-shadow: var(--shadow);
+}
+#discountPopup button {
+  margin-top: 10px; padding: 8px 14px; border: none;
+  background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer;
+}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
 .toast.show{display:block}
+
+/* pulse outline to draw attention to PayPal after email */
+.pulse{
+  animation:pulse 1.1s ease-in-out 5;
+  box-shadow:0 0 0 0 rgba(255,185,35,.7);
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,185,35,.7)}
+  70%{box-shadow:0 0 0 18px rgba(255,185,35,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,185,35,0)}
+}
 </style>
 </head>
 <body>
@@ -94,8 +195,9 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
         <div class="row2" id="discountRow" style="display:none;"><span>Discount</span><span id="discount">-£0.00</span></div>
         <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
 
+        <!-- Discount code input -->
         <div class="discount-row">
-          <input id="discountCode" placeholder="Discount code"/>
+          <input id="discountCode" placeholder="Discount code (HIT5, HIT10, HIT20, HITFREE)"/>
           <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
         </div>
         <div class="muted" id="discountMsg" style="margin-top:4px;"></div>
@@ -120,16 +222,19 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
     </div>
 
     <div class="checkout-actions">
+      <!-- Step 1 gate -->
       <div class="gate" id="payGate">
         <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>
         Pay options will unlock after the email opens.
       </div>
+      <!-- PayPal hidden until email sent -->
       <div id="paypal-button-container" style="display:none" aria-live="polite"></div>
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
     </div>
   </div>
 </div>
 
+<!-- Discount popup -->
 <div id="discountPopup">
   <div class="box">
     <h2>💪 Thanks for Visiting!</h2>
@@ -145,47 +250,64 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
+/* Discount codes */
 const DISCOUNT_CODES = {
-  HIT5:{type:'percent',value:5}, HIT10:{type:'percent',value:10},
-  HIT20:{type:'percent',value:20}, HITFREE:{type:'free_shipping',value:0}
+  'HIT5':   {type:'percent', value:5},
+  'HIT10':  {type:'percent', value:10},
+  'HIT20':  {type:'percent', value:20},
+  'HITFREE':{type:'free_shipping', value:0}
 };
-let appliedDiscount=null, emailSent=false;
+let appliedDiscount = null;
+let emailSent = false;
 
-/* Products (use local images in same folder) */
+/* Local image files (must be in the SAME folder as this HTML) */
 const PRODUCTS=[
-  {id:'tee',name:'HIT T-Shirt',price:12.00,sizes:['S','M','L','XL','2XL'],img:'tshirt.jpg'},
-  {id:'vest',name:'HIT Vest',price:18.00,sizes:['S','M','L','XL'],img:'vest.png'},
-  {id:'jumper',name:'HIT Jumper',price:35.00,sizes:['S','M','L','XL'],img:'jumper.png'},
-  {id:'hoodie',name:'HIT Hoodie',price:38.00,sizes:['S','M','L','XL'],img:'hoodie.png'},
-  {id:'cap',name:'HIT Cap',price:15.00,img:'cap.png'},
-  {id:'subcap',name:'Sublimated Cap',price:12.00,img:'subcap.png'},
-  {id:'mug',name:'HIT Mug',price:12.00,img:'mug.png'},
-  {id:'bottle',name:'HIT Bottle',price:15.00,img:'bottle.png'},
-  {id:'keyring',name:'HIT Keyring',price:5.00,img:'keyring.png'},
-  {id:'gymbag',name:'HIT Gym Bag',price:12.00,img:'gymbag.png'},
-  {id:'towel',name:'HIT Quick Dry Towel',price:10.00,img:'towel.jpg'},
-  {id:'mystery',name:'Mystery Bundle',price:20.00,img:'mystery.png'}
+  {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
+  {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
+  {id:'jumper',   name:'HIT Jumper',          price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
+  {id:'hoodie',   name:'HIT Hoodie',          price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
+  {id:'cap',      name:'HIT Cap',             price:15.00,                                   img:'cap.png'},
+  {id:'subcap',   name:'Sublimated Cap',      price:12.00,                                   img:'subcap.png'},
+  {id:'mug',      name:'HIT Mug',             price:12.00,                                   img:'mug.png'},
+  {id:'bottle',   name:'HIT Bottle',          price:15.00,                                   img:'bottle.png'},
+  {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
+  {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
+  {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
+  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
 ];
 
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 
-function showToast(msg='Copied order to clipboard'){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);}
-function saveCart(){localStorage.setItem('hh_cart',JSON.stringify(cart));updateFab();}
-function addToCart(line){const key=line.id+'|'+(line.size||'');const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key); if(existing){existing.qty+=line.qty;}else{cart.push(line);} saveCart(); renderCart(); openDrawer();}
-function removeFromCart(key){cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart();}
+function showToast(msg='Copied order to clipboard'){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
+function addToCart(line){
+  const key=line.id+'|'+(line.size||'');
+  const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key);
+  if(existing){ existing.qty+=line.qty; } else cart.push(line);
+  saveCart(); renderCart(); openDrawer();
+}
+function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart(); }
 
 function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
-  let shipping=subtotal===0?0:(subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
-  let discountValue=0;
+  let shipping = subtotal===0 ? 0 : (subtotal>=FREE_SHIPPING_OVER ? 0 : SHIPPING_FLAT);
+  let discountValue = 0;
+
   if(appliedDiscount){
-    if(appliedDiscount.type==='percent'){discountValue=subtotal*(appliedDiscount.value/100);}
-    else if(appliedDiscount.type==='free_shipping'){shipping=0;}
+    if(appliedDiscount.type==='percent'){
+      discountValue = subtotal * (appliedDiscount.value/100);
+    } else if(appliedDiscount.type==='free_shipping'){
+      shipping = 0;
+    }
   }
-  const grand=Math.max(0,subtotal-discountValue+shipping);
-  return {subtotal,shipping,discountValue,grand};
+  const grand = Math.max(0, subtotal - discountValue + shipping);
+  return {subtotal, shipping, discountValue, grand};
 }
 
 function updateFab(){
@@ -201,7 +323,8 @@ function renderProducts(){
     card.className='card';
     card.innerHTML=`
       <div class="media">
-        <img src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='comingsoon.png';">
+        <img src="${p.img}" alt="${p.name}"
+             onerror="this.onerror=null;this.src='comingsoon.png';">
       </div>
       <div class="body">
         <div>
@@ -218,9 +341,9 @@ function renderProducts(){
     card.querySelector('.add').onclick=()=>{
       const sizeEl=card.querySelector('.size');
       const size=p.sizes?(sizeEl.value||''):'';
-      if(p.sizes && !size){alert('Please choose a size'); sizeEl.classList.add('error'); return;}
+      if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); return; }
       sizeEl.classList.remove('error');
-      const qty=Math.max(1,parseInt(card.querySelector('.qty').value||'1',10));
+      const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
       addToCart({id:p.id,name:p.name,price:p.price,size,qty});
     };
     grid.appendChild(card);
@@ -255,42 +378,58 @@ function renderCart(){
   document.getElementById('shipping').textContent=currency(shipping);
   document.getElementById('grand').textContent=currency(grand);
 
-  const dr=document.getElementById('discountRow'); const dv=document.getElementById('discount');
-  if(discountValue>0){ dr.style.display=''; dv.textContent='-'+currency(discountValue).replace('£',''); } else { dr.style.display='none'; }
+  const dr=document.getElementById('discountRow');
+  const dv=document.getElementById('discount');
+  if(discountValue>0){
+    dr.style.display='';
+    dv.textContent='-'+currency(discountValue).replace('£','');
+  }else{
+    dr.style.display='none';
+  }
 
   updateFab();
 }
 
-/* Drawer */
+/* Drawer UX */
 function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); }
 function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); }
 document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
 
-/* Form + email-first gate */
-function getFormData(){ return Object.fromEntries(new FormData(document.getElementById('checkoutForm')).entries()); }
+/* Form helpers */
+function getFormData(){
+  const fd=new FormData(document.getElementById('checkoutForm'));
+  return Object.fromEntries(fd.entries());
+}
 function validateEmailAddress(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
 function validateForm(showErrors=true){
-  const form=document.getElementById('checkoutForm'); const c=getFormData();
-  const required=['firstName','lastName','email','addr1','city','postcode','country']; let ok=true;
+  const form=document.getElementById('checkoutForm');
+  const c=getFormData();
+  const required=['firstName','lastName','email','addr1','city','postcode','country'];
+  let ok=true;
   form.querySelectorAll('input,textarea,select').forEach(el=>el.classList.remove('error'));
-  for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ const el=form.querySelector(`[name="${k}"]`); el&&el.classList.add('error'); } } }
+  for(const k of required){
+    if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ const el=form.querySelector(`[name="${k}"]`); el&&el.classList.add('error'); } }
+  }
   if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]').classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
   return ok;
 }
+
+/* Build order text */
 function buildOrderText(){
-  const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
+  const c=getFormData();
+  const {subtotal,shipping,discountValue,grand}=computeTotals();
   const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
-  const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
-  const disc = discountValue>0 ? `Discount: -${currency(discountValue)}\n` : '';
+  const address = `${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
+  const discSection = discountValue>0 ? `Discount: -${currency(discountValue)}\n` : '';
   return `ORDER SUMMARY — HealthAndHIT
 ----------------------------
 ${lines}
 ----------------------------
 Subtotal: ${currency(subtotal)}
-${disc}Shipping: ${currency(shipping)}
+${discSection}Shipping: ${currency(shipping)}
 Total: ${currency(grand)}
 
 CUSTOMER
@@ -303,60 +442,92 @@ ${address}
 ${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
 }
 
+/* Discount code */
 document.getElementById('applyDiscountBtn').onclick=()=>{
-  const code=(document.getElementById('discountCode').value||'').trim().toUpperCase();
-  const msg=document.getElementById('discountMsg');
+  const code = (document.getElementById('discountCode').value||'').trim().toUpperCase();
+  const msg = document.getElementById('discountMsg');
   if(!code){ appliedDiscount=null; msg.textContent=''; renderCart(); return; }
-  if(DISCOUNT_CODES[code]){ appliedDiscount=DISCOUNT_CODES[code]; msg.textContent=code==='HITFREE'?'Free shipping applied.':`${appliedDiscount.value}% off applied.`; }
-  else { appliedDiscount=null; msg.textContent='Invalid code.'; }
+  if(DISCOUNT_CODES[code]){
+    appliedDiscount = DISCOUNT_CODES[code];
+    msg.textContent = code==='HITFREE' ? 'Free shipping applied.' : `${appliedDiscount.value}% off applied.`;
+  }else{
+    appliedDiscount = null; msg.textContent='Invalid code.';
+  }
   renderCart();
 };
 
-document.getElementById('emailOrderBtn').onclick=async()=>{
-  if(!validateForm(true)) return;
-  const c=getFormData(); const text=buildOrderText();
-  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){}
-  const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
-  window.location.href=mailto;
-  emailSent=true;
-  document.getElementById('payGate').style.display='none';
-  document.getElementById('paypal-button-container').style.display='';
-  // lazy init paypal after email step
-  setupPaypalButtons();
-};
-
-/* Safe PayPal init — only if SDK loaded */
-function setupPaypalButtons(){
-  if(!window.paypal){ console.warn('PayPal SDK not available yet; will retry in 1s'); setTimeout(setupPaypalButtons,1000); return; }
+/* Setup PayPal buttons (called after email is sent) */
+function setupPaypalButtons(onReady){
+  if(!window.paypal){ setTimeout(()=>setupPaypalButtons(onReady), 600); return; }
   try{
-    window.paypal.Buttons({
-      style:{layout:'vertical',color:'gold',shape:'rect',label:'paypal'},
-      onClick:()=>{ if(!emailSent){ alert('Please press "Send Order by Email" first.'); return false; } if(!validateForm(true)) return false; },
-      createOrder: (data, actions)=> {
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+      onClick: function(){
+        if(!emailSent){ alert('Please press "Send Order by Email" first.'); return false; }
+        if(!validateForm(true)) return false;
+      },
+      createOrder: function(data, actions) {
         const {grand}=computeTotals();
         return actions.order.create({
-          purchase_units:[{ amount:{ currency_code:'GBP', value: grand.toFixed(2) }, description:'HealthAndHIT Shop Order'}],
-          application_context:{ shipping_preference:'NO_SHIPPING', locale:'en-GB' }
+          purchase_units: [{
+            amount: { currency_code: 'GBP', value: grand.toFixed(2) },
+            description: 'HealthAndHIT Shop Order'
+          }],
+          application_context: { shipping_preference: 'NO_SHIPPING', locale: 'en-GB' }
         });
       },
-      onApprove:(data, actions)=>actions.order.capture().then(details=>{
-        alert('Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '. Thank you!');
-        cart=[]; saveCart(); renderCart(); closeDrawer();
-      }),
-      onError:(err)=>{ console.error(err); alert('PayPal error. Please try again or use the email option.'); }
-    }).render('#paypal-button-container');
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          confetti({ particleCount: 140, spread: 70, origin: { y: 0.6 } });
+          alert('Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '. Thank you!');
+          cart=[]; saveCart(); renderCart(); closeDrawer();
+        });
+      },
+      onError: function(err){ console.error(err); alert('PayPal error. Please try again or use the email option.'); }
+    }).render('#paypal-button-container').then(()=>{ if(onReady) onReady(); });
   }catch(e){ console.error('PayPal init failed:', e); }
 }
+
+/* Email order — unlocks PayPal */
+document.getElementById('emailOrderBtn').onclick=async()=>{
+  if(!validateForm(true)) return;
+  const c=getFormData();
+  const text=buildOrderText();
+
+  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){}
+
+  const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
+  window.location.href=mailto;
+
+  // Unlock payment options
+  emailSent = true;
+  document.getElementById('payGate').style.display='none';
+  const pbc = document.getElementById('paypal-button-container');
+  pbc.style.display='';
+
+  setupPaypalButtons(()=>{
+    // draw attention & scroll to PayPal
+    pbc.classList.add('pulse');
+    pbc.scrollIntoView({behavior:'smooth', block:'center'});
+    setTimeout(()=>pbc.classList.remove('pulse'), 3000);
+    // NOTE: browsers/PayPal generally block auto-opening; user taps the PayPal button now visible.
+  });
+};
 
 /* Init */
 function init(){
   renderProducts(); renderCart(); updateFab();
   document.getElementById('payGate').style.display='';
   document.getElementById('paypal-button-container').style.display='none';
-  if(!sessionStorage.getItem('welcomeShown')){ document.getElementById('discountPopup').style.display='flex'; sessionStorage.setItem('welcomeShown','true'); }
-  else { document.getElementById('discountPopup').style.display='none'; }
+
+  if(!sessionStorage.getItem('welcomeShown')){
+    document.getElementById('discountPopup').style.display='flex';
+    sessionStorage.setItem('welcomeShown','true');
+  } else {
+    document.getElementById('discountPopup').style.display='none';
+  }
 }
-window.addEventListener('DOMContentLoaded', init);
+init();
 </script>
 </body>
 </html>

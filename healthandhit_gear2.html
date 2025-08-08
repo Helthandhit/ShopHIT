@@ -6,8 +6,6 @@
 <title>HealthAndHIT — Shop</title>
 <meta name="color-scheme" content="dark light">
 
-<!-- NOTE: Using PayPal.me flow (no client-id required) -->
-
 <style>
 :root {
   --bg:#191a1e; --panel:#23242b; --card:#26272f; --accent:#ff3939; --accent-2:#ff6b6b;
@@ -79,7 +77,12 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33;
   display:flex; flex-direction:column; height:100svh; max-height:100svh;
 }
-.drawer-content{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 16px;}
+/* scrollable area inc. cart + totals + form */
+.drawer-content{
+  flex:1; min-height:0;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:0 16px 16px;
+}
 .panel header .wrap{padding:14px 16px}
 .section-title{padding:12px 0 0 0; font-weight:700}
 
@@ -116,7 +119,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
   border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;
 }
 
-/* Discount popup */
+/* Popup + toast */
 #discountPopup {
   position: fixed; top:0; left:0; right:0; bottom:0;
   background: rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center;
@@ -130,14 +133,25 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
   margin-top: 10px; padding: 8px 14px; border: none;
   background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer;
 }
-
-/* Toast */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
   background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
 .toast.show{display:block}
+
+/* Pulse for PayPal stage */
+.pulse{animation:pulse 1.2s infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,57,57,.6)}
+  70%{box-shadow:0 0 0 12px rgba(255,57,57,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,57,57,0)}
+}
+
+/* Confetti canvas (optional) */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200}
 </style>
 </head>
 <body>
+<canvas id="confetti"></canvas>
+
 <header>
   <div class="wrap brand">
     <div class="logo"></div>
@@ -176,7 +190,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 
         <!-- Discount code input -->
         <div class="discount-row">
-          <input id="discountCode" placeholder="Discount code (HIT5, HIT10, HIT20, HITFREE)"/>
+          <input id="discountCode" placeholder="Discount code"/>
           <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
         </div>
         <div class="muted" id="discountMsg" style="margin-top:4px;"></div>
@@ -204,8 +218,10 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
       <!-- Step 1 gate -->
       <div class="gate" id="payGate">
         <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>
-        Pay will open automatically after the email.
+        A PayPal button will appear afterwards.
       </div>
+
+      <!-- We reuse the SAME button; it becomes PayPal after email -->
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
     </div>
   </div>
@@ -224,9 +240,9 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 <div class="toast" id="toast">Copied order to clipboard</div>
 
 <script>
-/* --- CONFIG --- */
+/* -------- Settings -------- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
-const PAYPAL_ME_HANDLE = "healthandhit"; // your paypal.me/healthandhit
+const PAYPAL_ME_BASE = "https://www.paypal.com/paypalme/healthandhit/";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
 /* Discount codes */
@@ -237,8 +253,9 @@ const DISCOUNT_CODES = {
   'HITFREE':{type:'free_shipping', value:0}
 };
 let appliedDiscount = null;
+let emailSent = false;
 
-/* Products */
+/* Local image files */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -254,6 +271,7 @@ const PRODUCTS=[
   {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
 ];
 
+/* Helpers */
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
@@ -262,32 +280,6 @@ function showToast(msg='Copied order to clipboard'){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),1600);
 }
-
-/* Confetti (tiny, no deps) */
-function confettiBurst() {
-  const count = 80;
-  for (let i=0;i<count;i++){
-    const d=document.createElement('div');
-    d.style.position='fixed';
-    d.style.left=(Math.random()*100)+'vw';
-    d.style.top='-10px';
-    d.style.width='6px'; d.style.height='10px';
-    d.style.background=`hsl(${Math.random()*360},95%,60%)`;
-    d.style.opacity='0.9';
-    d.style.transform=`rotate(${Math.random()*360}deg)`;
-    d.style.zIndex='9999';
-    d.style.borderRadius='2px';
-    document.body.appendChild(d);
-    const duration = 700 + Math.random()*1200;
-    const dx = (Math.random()*2-1)*120;
-    d.animate([
-      { transform: d.style.transform + ' translate(0,0)', opacity: 1 },
-      { transform: d.style.transform + ` translate(${dx}px,100vh)`, opacity: 0.9 }
-    ], { duration, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    setTimeout(()=>d.remove(), duration+50);
-  }
-}
-
 function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
 function addToCart(line){
   const key=line.id+'|'+(line.size||'');
@@ -301,13 +293,9 @@ function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
   let shipping = subtotal===0 ? 0 : (subtotal>=FREE_SHIPPING_OVER ? 0 : SHIPPING_FLAT);
   let discountValue = 0;
-
   if(appliedDiscount){
-    if(appliedDiscount.type==='percent'){
-      discountValue = subtotal * (appliedDiscount.value/100);
-    } else if(appliedDiscount.type==='free_shipping'){
-      shipping = 0;
-    }
+    if(appliedDiscount.type==='percent'){ discountValue = subtotal * (appliedDiscount.value/100); }
+    else if(appliedDiscount.type==='free_shipping'){ shipping = 0; }
   }
   const grand = Math.max(0, subtotal - discountValue + shipping);
   return {subtotal, shipping, discountValue, grand};
@@ -326,8 +314,7 @@ function renderProducts(){
     card.className='card';
     card.innerHTML=`
       <div class="media">
-        <img src="${p.img}" alt="${p.name}"
-             onerror="this.onerror=null;this.src='comingsoon.png';">
+        <img src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='comingsoon.png';">
       </div>
       <div class="body">
         <div>
@@ -335,7 +322,9 @@ function renderProducts(){
           <div class="muted">${p.sizes?'Clothing':'Accessory'}</div>
           <div class="row"><span class="price">${currency(p.price)}</span></div>
           <div class="row">
-            ${p.sizes?`<select class="size"><option value="">Size</option>${p.sizes.map(s=>`<option>${s}</option>`).join('')}</select>`:`<input type="hidden" class="size">`}
+            ${p.sizes
+              ? `<select class="size"><option value="">Size</option>${p.sizes.map(s=>`<option>${s}</option>`).join('')}</select>`
+              : `<input type="hidden" class="size">`}
             <input type="number" class="qty" min="1" value="1">
           </div>
         </div>
@@ -383,12 +372,8 @@ function renderCart(){
 
   const dr=document.getElementById('discountRow');
   const dv=document.getElementById('discount');
-  if(discountValue>0){
-    dr.style.display='';
-    dv.textContent='-'+currency(discountValue).replace('£','');
-  }else{
-    dr.style.display='none';
-  }
+  if(discountValue>0){ dr.style.display=''; dv.textContent='-'+currency(discountValue).replace('£',''); }
+  else{ dr.style.display='none'; }
 
   updateFab();
 }
@@ -400,8 +385,11 @@ document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
 
-/* Form helpers */
-function getFormData(){ const fd=new FormData(document.getElementById('checkoutForm')); return Object.fromEntries(fd.entries()); }
+/* Form */
+function getFormData(){
+  const fd=new FormData(document.getElementById('checkoutForm'));
+  return Object.fromEntries(fd.entries());
+}
 function validateEmailAddress(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
 function validateForm(showErrors=true){
   const form=document.getElementById('checkoutForm');
@@ -442,7 +430,7 @@ ${address}
 ${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
 }
 
-/* Discount input */
+/* Discount code */
 document.getElementById('applyDiscountBtn').onclick=()=>{
   const code = (document.getElementById('discountCode').value||'').trim().toUpperCase();
   const msg = document.getElementById('discountMsg');
@@ -456,30 +444,69 @@ document.getElementById('applyDiscountBtn').onclick=()=>{
   renderCart();
 };
 
-/* Send email, then auto-open PayPal.me with exact total */
-document.getElementById('emailOrderBtn').onclick=async()=>{
+/* Email first, then switch to PayPal button */
+const emailBtn = document.getElementById('emailOrderBtn');
+
+emailBtn.onclick = async ()=>{
   if(!validateForm(true)) return;
   const c=getFormData();
   const text=buildOrderText();
 
-  // total in GBP for paypal.me link
-  const {grand}=computeTotals();
-  const totalStr = (Math.round(grand*100)/100).toFixed(2); // e.g., "42.97"
-
   try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){ /* ignore */ }
 
   const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
-
-  // 1) open email draft in same tab
   window.location.href=mailto;
 
-  // 2) open PayPal.me with amount in a new tab (user gesture still counts from this click)
-  setTimeout(()=>{
-    const url = `https://paypal.me/${PAYPAL_ME_HANDLE}/${totalStr}`;
-    window.open(url, '_blank', 'noopener');
-    confettiBurst();
-  }, 200);
+  // Mark stage and switch the button to PayPal
+  emailSent = true;
+  document.getElementById('payGate').innerHTML = '✔️ Email opened. <b>Step 2:</b> Click <em>Pay with PayPal</em> to complete payment.';
+  turnButtonIntoPaypal();
+  confettiBurst();
 };
+
+function turnButtonIntoPaypal(){
+  // Compute total right now (in case they changed shipping/discount before sending email)
+  const {grand}=computeTotals();
+
+  emailBtn.textContent = `Pay with PayPal — ${currency(grand)}`;
+  emailBtn.classList.add('pulse');
+  // Make sure it behaves as the PayPal button now
+  emailBtn.onclick = ()=>{
+    const {grand}=computeTotals(); // re-check total at click time
+    const amount = grand.toFixed(2);
+    window.open(PAYPAL_ME_BASE + amount, '_blank');
+  };
+}
+
+/* Simple confetti (lightweight) */
+function confettiBurst(){
+  const canvas=document.getElementById('confetti');
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width=window.innerWidth, h=canvas.height=window.innerHeight;
+  const N=140, parts=[];
+  for(let i=0;i<N;i++){
+    parts.push({
+      x:Math.random()*w, y:-20-Math.random()*h*0.3,
+      r:2+Math.random()*4, vy:2+Math.random()*3, vx:(Math.random()-0.5)*2,
+      a:Math.random()*Math.PI, va:(Math.random()*0.2-0.1)
+    });
+  }
+  let t=0;
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    parts.forEach(p=>{
+      p.y+=p.vy; p.x+=p.vx; p.a+=p.va;
+      ctx.save();
+      ctx.translate(p.x,p.y); ctx.rotate(p.a);
+      ctx.fillStyle= `hsl(${(p.x+p.y)%360},100%,60%)`;
+      ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2);
+      ctx.restore();
+    });
+    t++;
+    if(t<120) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h);
+  }
+  step();
+}
 
 /* Init */
 function init(){

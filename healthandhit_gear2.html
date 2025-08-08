@@ -6,9 +6,8 @@
 <title>HealthAndHIT — Shop</title>
 <meta name="color-scheme" content="dark light">
 
-<!-- PayPal (UK sandbox) -->
-<!-- Replace YOUR_UK_SANDBOX_CLIENT_ID with the client ID from your UK Business sandbox app -->
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_UK_SANDBOX_CLIENT_ID&currency=GBP&intent=CAPTURE&locale=en_GB"></script>
+<!-- PayPal (sandbox) -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=GBP"></script>
 
 <style>
 :root {
@@ -103,10 +102,6 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .totals .row2{display:flex;justify-content:space-between;margin:6px 0}
 .totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
 
-/* Discount row */
-.discount-row{display:flex;gap:8px;align-items:center;margin-top:10px}
-.discount-row input{flex:1}
-
 /* Address form */
 .form .grid{display:grid;grid-template-columns:1fr;gap:10px}
 @media(min-width:680px){.form .grid{grid-template-columns:1fr 1fr}}
@@ -118,9 +113,6 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
   position:sticky; bottom:0; inset-inline:0;
   background:#181920; border-top:1px solid #2b2c33;
   padding:12px 16px; display:flex; flex-direction:column; gap:10px;
-}
-.gate{
-  border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;
 }
 
 /* Discount popup */
@@ -178,15 +170,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
       <div class="totals">
         <div class="row2"><span>Subtotal</span><strong id="subtotal">£0.00</strong></div>
         <div class="row2"><span>Shipping</span><span id="shipping">£0.00</span></div>
-        <div class="row2" id="discountRow" style="display:none;"><span>Discount</span><span id="discount">-£0.00</span></div>
         <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
-
-        <!-- Discount code input -->
-        <div class="discount-row">
-          <input id="discountCode" placeholder="Discount code (HIT5, HIT10, HIT20, HITFREE)"/>
-          <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
-        </div>
-        <div class="muted" id="discountMsg" style="margin-top:4px;"></div>
       </div>
 
       <div class="section-title">Delivery details</div>
@@ -208,13 +192,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
     </div>
 
     <div class="checkout-actions">
-      <!-- Step 1 gate -->
-      <div class="gate" id="payGate">
-        <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>
-        Pay options will unlock after the email opens.
-      </div>
-      <!-- PayPal hidden until email sent -->
-      <div id="paypal-button-container" style="display:none" aria-live="polite"></div>
+      <div id="paypal-button-container" aria-live="polite"></div>
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
     </div>
   </div>
@@ -236,32 +214,23 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
-/* Discount codes */
-const DISCOUNT_CODES = {
-  'HIT5':   {type:'percent', value:5},
-  'HIT10':  {type:'percent', value:10},
-  'HIT20':  {type:'percent', value:20},
-  'HITFREE':{type:'free_shipping', value:0}
-};
-let appliedDiscount = null;
-let emailSent = false;
-
-/* Local image files */
+/* Updated to use your local image files */
 const PRODUCTS=[
-  {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
-  {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
-  {id:'jumper',   name:'HIT Jumper',          price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
-  {id:'hoodie',   name:'HIT Hoodie',          price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
-  {id:'cap',      name:'HIT Cap',             price:15.00,                                   img:'cap.png'},
-  {id:'subcap',   name:'Sublimated Cap',      price:12.00,                                   img:'subcap.png'},
-  {id:'mug',      name:'HIT Mug',             price:12.00,                                   img:'mug.png'},
-  {id:'bottle',   name:'HIT Bottle',          price:15.00,                                   img:'bottle.png'},
-  {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
-  {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
-  {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
-  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
+  {id:'tee',      name:'HIT T-Shirt',      price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
+  {id:'vest',     name:'HIT Vest',         price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
+  {id:'jumper',   name:'HIT Jumper',       price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
+  {id:'hoodie',   name:'HIT Hoodie',       price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
+  {id:'cap',      name:'HIT Cap',          price:15.00,                                   img:'cap.png'},
+  {id:'subcap',   name:'Sublimated Cap',   price:12.00,                                   img:'subcap.png'},
+  {id:'mug',      name:'HIT Mug',          price:12.00,                                   img:'mug.png'},
+  {id:'bottle',   name:'HIT Bottle',       price:15.00,                                   img:'bottle.png'},
+  {id:'keyring',  name:'HIT Keyring',      price:5.00,                                    img:'keyring.png'},
+  {id:'gymbag',   name:'HIT Gym Bag',      price:12.00,                                   img:'gymbag.png'},
+  {id:'towel',    name:'HIT Quick Dry Towel',price:10.00,                                  img:'towel.jpg'},
+  {id:'mystery',  name:'Mystery Bundle',   price:20.00,                                   img:'mystery.png'}
 ];
 
+/* optional: files you don’t have yet will fallback to comingsoon.png automatically */
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
@@ -282,18 +251,8 @@ function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key)
 
 function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
-  let shipping = subtotal===0 ? 0 : (subtotal>=FREE_SHIPPING_OVER ? 0 : SHIPPING_FLAT);
-  let discountValue = 0;
-
-  if(appliedDiscount){
-    if(appliedDiscount.type==='percent'){
-      discountValue = subtotal * (appliedDiscount.value/100);
-    } else if(appliedDiscount.type==='free_shipping'){
-      shipping = 0;
-    }
-  }
-  const grand = Math.max(0, subtotal - discountValue + shipping);
-  return {subtotal, shipping, discountValue, grand};
+  const shipping=subtotal===0?0:(subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
+  return {subtotal,shipping,grand:subtotal+shipping};
 }
 
 function updateFab(){
@@ -359,20 +318,10 @@ function renderCart(){
     cartItems.appendChild(row);
   });
 
-  const {subtotal,shipping,discountValue,grand}=computeTotals();
+  const {subtotal,shipping,grand}=computeTotals();
   document.getElementById('subtotal').textContent=currency(subtotal);
   document.getElementById('shipping').textContent=currency(shipping);
   document.getElementById('grand').textContent=currency(grand);
-
-  const dr=document.getElementById('discountRow');
-  const dv=document.getElementById('discount');
-  if(discountValue>0){
-    dr.style.display='';
-    dv.textContent='-'+currency(discountValue).replace('£','');
-  }else{
-    dr.style.display='none';
-  }
-
   updateFab();
 }
 
@@ -388,7 +337,7 @@ function getFormData(){
   const fd=new FormData(document.getElementById('checkoutForm'));
   return Object.fromEntries(fd.entries());
 }
-function validateEmailAddress(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
+function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
 function validateForm(showErrors=true){
   const form=document.getElementById('checkoutForm');
   const c=getFormData();
@@ -398,7 +347,7 @@ function validateForm(showErrors=true){
   for(const k of required){
     if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ const el=form.querySelector(`[name="${k}"]`); el&&el.classList.add('error'); } }
   }
-  if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]').classList.add('error'); alert('Please enter a valid email.'); } }
+  if(!validateEmail(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]').classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
   return ok;
 }
@@ -406,16 +355,15 @@ function validateForm(showErrors=true){
 /* Build order text */
 function buildOrderText(){
   const c=getFormData();
-  const {subtotal,shipping,discountValue,grand}=computeTotals();
+  const {subtotal,shipping,grand}=computeTotals();
   const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
   const address = `${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
-  const discSection = discountValue>0 ? `Discount: -${currency(discountValue)}\n` : '';
   return `ORDER SUMMARY — HealthAndHIT
 ----------------------------
 ${lines}
 ----------------------------
 Subtotal: ${currency(subtotal)}
-${discSection}Shipping: ${currency(shipping)}
+Shipping: ${currency(shipping)}
 Total: ${currency(grand)}
 
 CUSTOMER
@@ -428,52 +376,34 @@ ${address}
 ${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
 }
 
-/* Apply discount code */
-document.getElementById('applyDiscountBtn').onclick=()=>{
-  const code = (document.getElementById('discountCode').value||'').trim().toUpperCase();
-  const msg = document.getElementById('discountMsg');
-  if(!code){ appliedDiscount=null; msg.textContent=''; renderCart(); return; }
-  if(DISCOUNT_CODES[code]){
-    appliedDiscount = DISCOUNT_CODES[code];
-    msg.textContent = code==='HITFREE' ? 'Free shipping applied.' : `${appliedDiscount.value}% off applied.`;
-  }else{
-    appliedDiscount = null; msg.textContent='Invalid code.';
-  }
-  renderCart();
-};
-
-/* Email order — unlocks PayPal after click */
+/* Email order (opens mail app + copies text as fallback) */
 document.getElementById('emailOrderBtn').onclick=async()=>{
   if(!validateForm(true)) return;
   const c=getFormData();
   const text=buildOrderText();
 
+  // Try copy to clipboard so user can paste if mail app blocks
   try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){ /* ignore */ }
 
   const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
   window.location.href=mailto;
-
-  // Unlock payment options
-  emailSent = true;
-  document.getElementById('payGate').style.display='none';
-  document.getElementById('paypal-button-container').style.display='';
 };
 
-/* PayPal Buttons (UK sandbox) */
+/* PayPal Buttons (sandbox) — uses live cart total at click time */
 paypal.Buttons({
   style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
   onClick: function(){
-    if(!emailSent){ alert('Please press "Send Order by Email" first.'); return false; }
+    // Block checkout until form + cart valid
     if(!validateForm(true)) return false;
   },
   createOrder: function(data, actions) {
     const {grand}=computeTotals();
     return actions.order.create({
       purchase_units: [{
-        amount: { currency_code: 'GBP', value: grand.toFixed(2) },
+        amount: { value: grand.toFixed(2) },
         description: 'HealthAndHIT Shop Order'
       }],
-      application_context: { shipping_preference: 'NO_SHIPPING', locale: 'en-GB' }
+      application_context: { shipping_preference: 'NO_SHIPPING' }
     });
   },
   onApprove: function(data, actions) {
@@ -488,10 +418,6 @@ paypal.Buttons({
 /* Init */
 function init(){
   renderProducts(); renderCart(); updateFab();
-  // gate starts closed; paypal hidden
-  document.getElementById('payGate').style.display='';
-  document.getElementById('paypal-button-container').style.display='none';
-
   if(!sessionStorage.getItem('welcomeShown')){
     document.getElementById('discountPopup').style.display='flex';
     sessionStorage.setItem('welcomeShown','true');

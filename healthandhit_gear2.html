@@ -6,12 +6,7 @@
 <title>HealthAndHIT — Shop</title>
 <meta name="color-scheme" content="dark light">
 
-<!-- PayPal (UK sandbox) -->
-<!-- TODO: paste your UK sandbox client ID -->
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_UK_SANDBOX_CLIENT_ID&currency=GBP&intent=CAPTURE&locale=en_GB"></script>
-
-<!-- Confetti -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<!-- NOTE: Using PayPal.me flow (no client-id required) -->
 
 <style>
 :root {
@@ -42,7 +37,7 @@ header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e2
 .hero{padding:18px 16px 8px}
 .hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:var(--muted)}
 
-/* Product grid (uniform card heights) */
+/* Product grid */
 .grid{
   display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch
 }
@@ -84,12 +79,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33;
   display:flex; flex-direction:column; height:100svh; max-height:100svh;
 }
-/* scrollable area inc. cart + totals + form */
-.drawer-content{
-  flex:1; min-height:0;
-  overflow-y:auto; -webkit-overflow-scrolling:touch;
-  padding:0 16px 16px;
-}
+.drawer-content{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 16px;}
 .panel header .wrap{padding:14px 16px}
 .section-title{padding:12px 0 0 0; font-weight:700}
 
@@ -145,17 +135,6 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
   background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
 .toast.show{display:block}
-
-/* pulse outline to draw attention to PayPal after email */
-.pulse{
-  animation:pulse 1.1s ease-in-out 5;
-  box-shadow:0 0 0 0 rgba(255,185,35,.7);
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(255,185,35,.7)}
-  70%{box-shadow:0 0 0 18px rgba(255,185,35,0)}
-  100%{box-shadow:0 0 0 0 rgba(255,185,35,0)}
-}
 </style>
 </head>
 <body>
@@ -225,10 +204,8 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
       <!-- Step 1 gate -->
       <div class="gate" id="payGate">
         <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>
-        Pay options will unlock after the email opens.
+        Pay will open automatically after the email.
       </div>
-      <!-- PayPal hidden until email sent -->
-      <div id="paypal-button-container" style="display:none" aria-live="polite"></div>
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
     </div>
   </div>
@@ -247,7 +224,9 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 <div class="toast" id="toast">Copied order to clipboard</div>
 
 <script>
+/* --- CONFIG --- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
+const PAYPAL_ME_HANDLE = "healthandhit"; // your paypal.me/healthandhit
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
 /* Discount codes */
@@ -258,9 +237,8 @@ const DISCOUNT_CODES = {
   'HITFREE':{type:'free_shipping', value:0}
 };
 let appliedDiscount = null;
-let emailSent = false;
 
-/* Local image files (must be in the SAME folder as this HTML) */
+/* Products */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -283,6 +261,31 @@ let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 function showToast(msg='Copied order to clipboard'){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* Confetti (tiny, no deps) */
+function confettiBurst() {
+  const count = 80;
+  for (let i=0;i<count;i++){
+    const d=document.createElement('div');
+    d.style.position='fixed';
+    d.style.left=(Math.random()*100)+'vw';
+    d.style.top='-10px';
+    d.style.width='6px'; d.style.height='10px';
+    d.style.background=`hsl(${Math.random()*360},95%,60%)`;
+    d.style.opacity='0.9';
+    d.style.transform=`rotate(${Math.random()*360}deg)`;
+    d.style.zIndex='9999';
+    d.style.borderRadius='2px';
+    document.body.appendChild(d);
+    const duration = 700 + Math.random()*1200;
+    const dx = (Math.random()*2-1)*120;
+    d.animate([
+      { transform: d.style.transform + ' translate(0,0)', opacity: 1 },
+      { transform: d.style.transform + ` translate(${dx}px,100vh)`, opacity: 0.9 }
+    ], { duration, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    setTimeout(()=>d.remove(), duration+50);
+  }
 }
 
 function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
@@ -398,10 +401,7 @@ document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
 
 /* Form helpers */
-function getFormData(){
-  const fd=new FormData(document.getElementById('checkoutForm'));
-  return Object.fromEntries(fd.entries());
-}
+function getFormData(){ const fd=new FormData(document.getElementById('checkoutForm')); return Object.fromEntries(fd.entries()); }
 function validateEmailAddress(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
 function validateForm(showErrors=true){
   const form=document.getElementById('checkoutForm');
@@ -442,7 +442,7 @@ ${address}
 ${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
 }
 
-/* Discount code */
+/* Discount input */
 document.getElementById('applyDiscountBtn').onclick=()=>{
   const code = (document.getElementById('discountCode').value||'').trim().toUpperCase();
   const msg = document.getElementById('discountMsg');
@@ -456,69 +456,34 @@ document.getElementById('applyDiscountBtn').onclick=()=>{
   renderCart();
 };
 
-/* Setup PayPal buttons (called after email is sent) */
-function setupPaypalButtons(onReady){
-  if(!window.paypal){ setTimeout(()=>setupPaypalButtons(onReady), 600); return; }
-  try{
-    paypal.Buttons({
-      style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
-      onClick: function(){
-        if(!emailSent){ alert('Please press "Send Order by Email" first.'); return false; }
-        if(!validateForm(true)) return false;
-      },
-      createOrder: function(data, actions) {
-        const {grand}=computeTotals();
-        return actions.order.create({
-          purchase_units: [{
-            amount: { currency_code: 'GBP', value: grand.toFixed(2) },
-            description: 'HealthAndHIT Shop Order'
-          }],
-          application_context: { shipping_preference: 'NO_SHIPPING', locale: 'en-GB' }
-        });
-      },
-      onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-          confetti({ particleCount: 140, spread: 70, origin: { y: 0.6 } });
-          alert('Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '. Thank you!');
-          cart=[]; saveCart(); renderCart(); closeDrawer();
-        });
-      },
-      onError: function(err){ console.error(err); alert('PayPal error. Please try again or use the email option.'); }
-    }).render('#paypal-button-container').then(()=>{ if(onReady) onReady(); });
-  }catch(e){ console.error('PayPal init failed:', e); }
-}
-
-/* Email order — unlocks PayPal */
+/* Send email, then auto-open PayPal.me with exact total */
 document.getElementById('emailOrderBtn').onclick=async()=>{
   if(!validateForm(true)) return;
   const c=getFormData();
   const text=buildOrderText();
 
-  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){}
+  // total in GBP for paypal.me link
+  const {grand}=computeTotals();
+  const totalStr = (Math.round(grand*100)/100).toFixed(2); // e.g., "42.97"
+
+  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){ /* ignore */ }
 
   const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
+
+  // 1) open email draft in same tab
   window.location.href=mailto;
 
-  // Unlock payment options
-  emailSent = true;
-  document.getElementById('payGate').style.display='none';
-  const pbc = document.getElementById('paypal-button-container');
-  pbc.style.display='';
-
-  setupPaypalButtons(()=>{
-    // draw attention & scroll to PayPal
-    pbc.classList.add('pulse');
-    pbc.scrollIntoView({behavior:'smooth', block:'center'});
-    setTimeout(()=>pbc.classList.remove('pulse'), 3000);
-    // NOTE: browsers/PayPal generally block auto-opening; user taps the PayPal button now visible.
-  });
+  // 2) open PayPal.me with amount in a new tab (user gesture still counts from this click)
+  setTimeout(()=>{
+    const url = `https://paypal.me/${PAYPAL_ME_HANDLE}/${totalStr}`;
+    window.open(url, '_blank', 'noopener');
+    confettiBurst();
+  }, 200);
 };
 
 /* Init */
 function init(){
   renderProducts(); renderCart(); updateFab();
-  document.getElementById('payGate').style.display='';
-  document.getElementById('paypal-button-container').style.display='none';
 
   if(!sessionStorage.getItem('welcomeShown')){
     document.getElementById('discountPopup').style.display='flex';

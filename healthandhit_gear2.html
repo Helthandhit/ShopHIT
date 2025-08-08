@@ -5,46 +5,62 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>HealthAndHIT — Shop</title>
 <meta name="color-scheme" content="dark light">
+
+<!-- PayPal (sandbox) -->
 <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=GBP"></script>
+
 <style>
 :root {
   --bg:#191a1e; --panel:#23242b; --card:#26272f; --accent:#ff3939; --accent-2:#ff6b6b;
   --text:#ffffff; --muted:#c9c9cf; --ok:#48c774; --warn:#ffb020; --bad:#ff4d4d;
   --radius:16px; --shadow:0 8px 30px rgba(0,0,0,.35);
 }
-*{box-sizing:border-box;}
+*{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-a{color:inherit;}
+a{color:inherit;text-decoration:none}
+
+/* Header */
 header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e23 0%,#1a1b20 100%);border-bottom:1px solid #2f3038}
 .wrap{max-width:1160px;margin:0 auto;padding:16px}
 .brand{display:flex;align-items:center;gap:12px}
 .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#ff6b6b,#ff3939 60%,#b70000);box-shadow:0 0 0 3px #2a2b31}
 .brand h1{font-size:1.25rem;margin:0;font-weight:700;letter-spacing:.3px}
+
+/* Basket FAB */
 .basket-fab{
   position:fixed; right:18px; top:18px; display:flex; align-items:center; gap:10px;
   background:var(--accent); color:#fff; padding:10px 14px; border-radius:999px; box-shadow:var(--shadow);
   cursor:pointer; z-index:60; border:0; font-weight:700;
 }
 .basket-fab .count{background:#000; padding:2px 8px; border-radius:999px; font-size:.85rem}
+
+/* Hero notice */
 .hero{padding:18px 16px 8px}
 .hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px}
+
+/* Product grid (uniform card heights) */
+.grid{
+  display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch
+}
 @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
+
 .card{
   background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
-  overflow:hidden;border:1px solid #2c2d36;display:flex;flex-direction:column
+  overflow:hidden;border:1px solid #2c2d36;display:grid;grid-template-rows:auto 1fr;height:100%
 }
 .media{
-  background:#101015;display:grid;place-items:center;color:#aaa;font-size:.9rem;
-  height:180px;
+  height:180px; background:#101015; display:flex; align-items:center; justify-content:center;
 }
-.media img{max-height:100%; max-width:100%; object-fit:contain;}
-.card .body{padding:14px 14px 12px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.media img{width:100%;height:100%;object-fit:contain}
+
+.card .body{
+  padding:14px 14px 12px;display:flex;flex-direction:column;gap:10px
+}
 .title{font-weight:700;margin:0 0 4px}
 .price{color:#ffb923;font-weight:700}
 .muted{color:var(--muted);font-size:.9rem}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 select, input[type="number"], input[type="text"], input[type="email"], textarea{
   width:100%; padding:10px 12px; border-radius:10px; border:1px solid #343542; background:#1f2027; color:#fff;
 }
@@ -61,20 +77,45 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45)}
 .panel{
   position:absolute; right:0; top:0; bottom:0;
-  width:min(520px,100%); background:#1b1c22;
-  border-left:1px solid #2b2c33;
-  display:flex; flex-direction:column;
-  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33;
+  display:flex; flex-direction:column; height:100svh; max-height:100svh;
 }
-.cart-items{padding:10px 16px;display:flex;flex-direction:column;gap:12px}
-.cart-line{display:grid;grid-template-columns:1fr auto;gap:10px;border:1px solid #2b2c36;border-radius:12px;padding:10px;background:#20222a}
+/* scrollable area inc. cart + totals + form */
+.drawer-content{
+  flex:1; min-height:0;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:0 16px 16px;
+}
+.panel header .wrap{padding:14px 16px}
+.section-title{padding:12px 0 0 0; font-weight:700}
+
+/* Lines */
+.cart-items{display:flex;flex-direction:column;gap:12px; padding-top:10px}
+.cart-line{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  border:1px solid #2b2c36;border-radius:12px;padding:12px;background:#20222a
+}
 .cart-line .meta{font-size:.9rem;color:var(--muted)}
-.totals{margin:10px 16px 0;border-top:1px dashed #353644;padding-top:10px;color:#ddd}
+
+/* Totals */
+.totals{border-top:1px dashed #353644;margin-top:12px;padding-top:10px;color:#ddd}
 .totals .row2{display:flex;justify-content:space-between;margin:6px 0}
 .totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
-.checkout{margin:12px 16px 18px;display:flex;flex-direction:column;gap:10px}
 
-/* Popup */
+/* Address form */
+.form .grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:680px){.form .grid{grid-template-columns:1fr 1fr}}
+.form .grid .full{grid-column:1/-1}
+input.error, textarea.error, select.error{outline:2px solid var(--bad);}
+
+/* Sticky action bar */
+.checkout-actions{
+  position:sticky; bottom:0; inset-inline:0;
+  background:#181920; border-top:1px solid #2b2c33;
+  padding:12px 16px; display:flex; flex-direction:column; gap:10px;
+}
+
+/* Discount popup */
 #discountPopup {
   position: fixed; top:0; left:0; right:0; bottom:0;
   background: rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center;
@@ -82,12 +123,17 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 }
 #discountPopup .box {
   background: var(--card); padding: 20px; border-radius: var(--radius);
-  max-width: 300px; text-align:center; box-shadow: var(--shadow);
+  max-width: 320px; text-align:center; box-shadow: var(--shadow);
 }
 #discountPopup button {
   margin-top: 10px; padding: 8px 14px; border: none;
   background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer;
 }
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
+.toast.show{display:block}
 </style>
 </head>
 <body>
@@ -98,7 +144,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   </div>
 </header>
 
-<button class="basket-fab" id="basketFab">🧺 <span class="count" id="basketCount">0</span> <span id="basketTotal">£0.00</span></button>
+<button class="basket-fab" id="basketFab">🧺 <span class="count" id="basketCount">0</span> <span class="count" id="basketTotal">£0.00</span></button>
 
 <section class="hero wrap">
   <div class="notice">🔴 <b>Now Open</b> — Add items, then tap the basket to checkout.</div>
@@ -106,28 +152,53 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 
 <section class="grid" id="productsGrid"></section>
 
-<div class="drawer" id="drawer">
+<!-- Drawer -->
+<div class="drawer" id="drawer" aria-hidden="true">
   <div class="backdrop" id="drawerBackdrop"></div>
-  <div class="panel">
+  <div class="panel" role="dialog" aria-label="Basket drawer">
     <header>
       <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
         <strong>🧺 Your Basket</strong>
-        <button class="btn btn-bad small" id="closeDrawer">Close</button>
+        <button class="btn btn-bad small" id="closeDrawer" aria-label="Close basket">Close</button>
       </div>
     </header>
-    <div class="cart-items" id="cartItems"></div>
-    <div class="totals">
-      <div class="row2"><span>Subtotal</span><strong id="subtotal">£0.00</strong></div>
-      <div class="row2"><span>Shipping</span><span id="shipping">£0.00</span></div>
-      <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
+
+    <div class="drawer-content" id="drawerContent">
+      <div class="section-title">Items</div>
+      <div class="cart-items" id="cartItems"></div>
+
+      <div class="totals">
+        <div class="row2"><span>Subtotal</span><strong id="subtotal">£0.00</strong></div>
+        <div class="row2"><span>Shipping</span><span id="shipping">£0.00</span></div>
+        <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
+      </div>
+
+      <div class="section-title">Delivery details</div>
+      <form class="form" id="checkoutForm" novalidate>
+        <div class="grid">
+          <div><input name="firstName" placeholder="First name" required></div>
+          <div><input name="lastName" placeholder="Last name" required></div>
+          <div class="full"><input name="email" type="email" placeholder="Email" required></div>
+          <div class="full"><input name="phone" placeholder="Phone"></div>
+          <div class="full"><input name="addr1" placeholder="Address line 1" required></div>
+          <div class="full"><input name="addr2" placeholder="Address line 2 (optional)"></div>
+          <div><input name="city" placeholder="Town/City" required></div>
+          <div><input name="county" placeholder="County/Region"></div>
+          <div><input name="postcode" placeholder="Postcode" required></div>
+          <div><input name="country" value="United Kingdom" placeholder="Country" required></div>
+          <div class="full"><textarea name="notes" rows="3" placeholder="Order notes (optional)"></textarea></div>
+        </div>
+      </form>
     </div>
-    <div class="checkout">
-      <div id="paypal-button-container"></div>
+
+    <div class="checkout-actions">
+      <div id="paypal-button-container" aria-live="polite"></div>
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
     </div>
   </div>
 </div>
 
+<!-- Discount popup -->
 <div id="discountPopup">
   <div class="box">
     <h2>💪 Thanks for Visiting!</h2>
@@ -137,49 +208,69 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   </div>
 </div>
 
+<div class="toast" id="toast">Copied order to clipboard</div>
+
 <script>
+const MERCHANT_EMAIL = "healthandhit@gmail.com";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
+
+/* Updated to use your local image files */
 const PRODUCTS=[
-  {id:'tee',name:'HIT T-Shirt',price:12.00,sizes:['S','M','L','XL','2XL'],img:'https://via.placeholder.com/300x180?text=T-Shirt'},
-  {id:'jumper',name:'HIT Jumper',price:24.00,sizes:['S','M','L','XL','2XL'],img:'https://via.placeholder.com/300x180?text=Jumper'},
-  {id:'hoodie',name:'HIT Hoodie',price:29.00,sizes:['S','M','L','XL','2XL'],img:'https://via.placeholder.com/300x180?text=Hoodie'},
-  {id:'cap',name:'HIT Cap',price:10.00,img:'https://via.placeholder.com/300x180?text=Cap'},
-  {id:'beanie',name:'HIT Beanie',price:12.00,img:'https://via.placeholder.com/300x180?text=Beanie'},
-  {id:'shorts',name:'HIT Shorts',price:18.00,sizes:['S','M','L','XL'],img:'https://via.placeholder.com/300x180?text=Shorts'},
-  {id:'leggings',name:'HIT Leggings',price:20.00,sizes:['XS','S','M','L','XL'],img:'https://via.placeholder.com/300x180?text=Leggings'},
-  {id:'socks',name:'HIT Socks',price:6.00,img:'https://via.placeholder.com/300x180?text=Socks'},
-  {id:'towel',name:'HIT Gym Towel',price:9.00,img:'https://via.placeholder.com/300x180?text=Towel'},
-  {id:'beaker',name:'HIT Beaker',price:7.00,img:'https://via.placeholder.com/300x180?text=Beaker'}
+  {id:'tee',      name:'HIT T-Shirt',      price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
+  {id:'vest',     name:'HIT Vest',         price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
+  {id:'jumper',   name:'HIT Jumper',       price:35.00, sizes:['S','M','L','XL'],       img:'jumper.png'},
+  {id:'hoodie',   name:'HIT Hoodie',       price:38.00, sizes:['S','M','L','XL'],       img:'hoodie.png'},
+  {id:'cap',      name:'HIT Cap',          price:15.00,                                   img:'cap.png'},
+  {id:'subcap',   name:'Sublimated Cap',   price:12.00,                                   img:'subcap.png'},
+  {id:'mug',      name:'HIT Mug',          price:12.00,                                   img:'mug.png'},
+  {id:'bottle',   name:'HIT Bottle',       price:15.00,                                   img:'bottle.png'},
+  {id:'keyring',  name:'HIT Keyring',      price:5.00,                                    img:'keyring.png'},
+  {id:'gymbag',   name:'HIT Gym Bag',      price:12.00,                                   img:'gymbag.png'},
+  {id:'towel',    name:'HIT Quick Dry Towel',price:10.00,                                  img:'towel.jpg'},
+  {id:'mystery',  name:'Mystery Bundle',   price:20.00,                                   img:'mystery.png'}
 ];
+
+/* optional: files you don’t have yet will fallback to comingsoon.png automatically */
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 
-function saveCart(){localStorage.setItem('hh_cart',JSON.stringify(cart));updateFab();}
+function showToast(msg='Copied order to clipboard'){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
 function addToCart(line){
   const key=line.id+'|'+(line.size||'');
   const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key);
-  if(existing){existing.qty+=line.qty;}else cart.push(line);
-  saveCart();renderCart();openDrawer();
+  if(existing){ existing.qty+=line.qty; } else cart.push(line);
+  saveCart(); renderCart(); openDrawer();
 }
-function removeFromCart(key){cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key);saveCart();renderCart();}
+function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart(); }
+
 function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
   const shipping=subtotal===0?0:(subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
-  return{subtotal,shipping,grand:subtotal+shipping};
+  return {subtotal,shipping,grand:subtotal+shipping};
 }
+
 function updateFab(){
-  const{subtotal}=computeTotals();
+  const {subtotal}=computeTotals();
   document.getElementById('basketCount').textContent=cart.reduce((n,l)=>n+l.qty,0);
   document.getElementById('basketTotal').textContent=currency(subtotal);
 }
+
 function renderProducts(){
   grid.innerHTML='';
   PRODUCTS.forEach(p=>{
     const card=document.createElement('article');
     card.className='card';
     card.innerHTML=`
-      <div class="media"><img src="${p.img}" alt="${p.name}"></div>
+      <div class="media">
+        <img src="${p.img}" alt="${p.name}"
+             onerror="this.onerror=null;this.src='comingsoon.png';">
+      </div>
       <div class="body">
         <div>
           <h3 class="title">${p.name}</h3>
@@ -193,14 +284,17 @@ function renderProducts(){
         <div class="row"><button class="btn btn-accent btn-block add">Add to Basket</button></div>
       </div>`;
     card.querySelector('.add').onclick=()=>{
-      const sizeEl=card.querySelector('.size'),size=p.sizes?(sizeEl.value||''):'';
-      if(p.sizes&&!size){alert('Please choose a size');return;}
-      const qty=parseInt(card.querySelector('.qty').value)||1;
+      const sizeEl=card.querySelector('.size');
+      const size=p.sizes?(sizeEl.value||''):'';
+      if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); return; }
+      sizeEl.classList.remove('error');
+      const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
       addToCart({id:p.id,name:p.name,price:p.price,size,qty});
     };
     grid.appendChild(card);
   });
 }
+
 function renderCart(){
   const cartItems=document.getElementById('cartItems');
   cartItems.innerHTML=cart.length?'' : '<div class="note">Your basket is empty.</div>';
@@ -208,50 +302,130 @@ function renderCart(){
     const key=l.id+'|'+(l.size||'');
     const row=document.createElement('div');
     row.className='cart-line';
-    row.innerHTML=`<div><strong>${l.name}${l.size?` - ${l.size}`:''}</strong>
-    <div class="meta">${currency(l.price)} × <input type="number" min="1" value="${l.qty}" style="width:60px"></div>
-    </div><div><strong>${currency(l.price*l.qty)}</strong>
-    <button class="btn btn-bad small">✕</button></div>`;
-    row.querySelector('input').oninput=e=>{l.qty=parseInt(e.target.value)||1;saveCart();renderCart();};
+    row.innerHTML=`
+      <div>
+        <strong>${l.name}${l.size?` — ${l.size}`:''}</strong>
+        <div class="meta">${currency(l.price)} ×&nbsp;
+          <input type="number" min="1" value="${l.qty}" style="width:70px;background:#171820;border:1px solid #2f3040;color:#fff;border-radius:8px;padding:6px 8px">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="min-width:90px;text-align:right;font-weight:800">${currency(l.price*l.qty)}</div>
+        <button class="btn btn-bad small" title="Remove">✕</button>
+      </div>`;
+    row.querySelector('input').oninput=e=>{ l.qty=Math.max(1,parseInt(e.target.value||'1',10)); saveCart(); renderCart(); };
     row.querySelector('.btn-bad').onclick=()=>removeFromCart(key);
     cartItems.appendChild(row);
   });
-  const{subtotal,shipping,grand}=computeTotals();
+
+  const {subtotal,shipping,grand}=computeTotals();
   document.getElementById('subtotal').textContent=currency(subtotal);
   document.getElementById('shipping').textContent=currency(shipping);
   document.getElementById('grand').textContent=currency(grand);
   updateFab();
 }
-function openDrawer(){document.getElementById('drawer').classList.add('open');}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');}
+
+/* Drawer UX + touch scroll ready */
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); }
 document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
 
-document.getElementById('emailOrderBtn').onclick=()=>{
-  if(!cart.length)return alert('Cart is empty');
-  const{subtotal,shipping,grand}=computeTotals();
+/* Form validation helpers */
+function getFormData(){
+  const fd=new FormData(document.getElementById('checkoutForm'));
+  return Object.fromEntries(fd.entries());
+}
+function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
+function validateForm(showErrors=true){
+  const form=document.getElementById('checkoutForm');
+  const c=getFormData();
+  const required=['firstName','lastName','email','addr1','city','postcode','country'];
+  let ok=true;
+  form.querySelectorAll('input,textarea,select').forEach(el=>el.classList.remove('error'));
+  for(const k of required){
+    if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ const el=form.querySelector(`[name="${k}"]`); el&&el.classList.add('error'); } }
+  }
+  if(!validateEmail(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]').classList.add('error'); alert('Please enter a valid email.'); } }
+  if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
+  return ok;
+}
+
+/* Build order text */
+function buildOrderText(){
+  const c=getFormData();
+  const {subtotal,shipping,grand}=computeTotals();
   const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
-  const text=`${lines}\n\nSubtotal: ${currency(subtotal)}\nShipping: ${currency(shipping)}\nTotal: ${currency(grand)}`;
-  window.location.href=`mailto:healthandhit@gmail.com?subject=Order&body=${encodeURIComponent(text)}`;
+  const address = `${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
+  return `ORDER SUMMARY — HealthAndHIT
+----------------------------
+${lines}
+----------------------------
+Subtotal: ${currency(subtotal)}
+Shipping: ${currency(shipping)}
+Total: ${currency(grand)}
+
+CUSTOMER
+Name: ${c.firstName} ${c.lastName}
+Email: ${c.email}
+Phone: ${c.phone||'-'}
+Address:
+${address}
+
+${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
+}
+
+/* Email order (opens mail app + copies text as fallback) */
+document.getElementById('emailOrderBtn').onclick=async()=>{
+  if(!validateForm(true)) return;
+  const c=getFormData();
+  const text=buildOrderText();
+
+  // Try copy to clipboard so user can paste if mail app blocks
+  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){ /* ignore */ }
+
+  const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
+  window.location.href=mailto;
 };
 
+/* PayPal Buttons (sandbox) — uses live cart total at click time */
 paypal.Buttons({
+  style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+  onClick: function(){
+    // Block checkout until form + cart valid
+    if(!validateForm(true)) return false;
+  },
   createOrder: function(data, actions) {
-    const{grand}=computeTotals();
+    const {grand}=computeTotals();
     return actions.order.create({
-      purchase_units: [{ amount: { value: grand.toFixed(2) } }]
+      purchase_units: [{
+        amount: { value: grand.toFixed(2) },
+        description: 'HealthAndHIT Shop Order'
+      }],
+      application_context: { shipping_preference: 'NO_SHIPPING' }
     });
   },
   onApprove: function(data, actions) {
     return actions.order.capture().then(function(details) {
-      alert('Payment completed by ' + details.payer.name.given_name);
-      cart=[]; saveCart(); renderCart();
+      alert('Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '. Thank you!');
+      cart=[]; saveCart(); renderCart(); closeDrawer();
     });
-  }
+  },
+  onError: function(err){ console.error(err); alert('PayPal error. Please try again or use the email option.'); }
 }).render('#paypal-button-container');
 
-renderProducts(); renderCart(); updateFab();
+/* Init */
+function init(){
+  renderProducts(); renderCart(); updateFab();
+  if(!sessionStorage.getItem('welcomeShown')){
+    document.getElementById('discountPopup').style.display='flex';
+    sessionStorage.setItem('welcomeShown','true');
+  } else {
+    document.getElementById('discountPopup').style.display='none';
+  }
+}
+init();
 </script>
 </body>
 </html>

@@ -99,6 +99,11 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .totals .row2{display:flex;justify-content:space-between;margin:6px 0}
 .totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
 
+/* Free shipping progress */
+.progress-wrap{margin-top:10px;background:#1e1f26;border:1px solid #2d2e39;border-radius:10px;overflow:hidden}
+.progress-bar{height:10px;width:0}
+.progress-msg{font-size:.9rem;color:#cfcfe5;margin:6px 0 0}
+
 /* Discount row */
 .discount-row{display:flex;gap:8px;align-items:center;margin-top:10px}
 .discount-row input{flex:1}
@@ -134,7 +139,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
   background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer;
 }
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-  background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none}
+  background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none;cursor:pointer}
 .toast.show{display:block}
 
 /* Pulse for PayPal stage */
@@ -147,6 +152,15 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 
 /* Confetti canvas (optional) */
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:200}
+
+/* FAB bump animation */
+.basket-fab.bump { animation: bump 300ms ease; }
+@keyframes bump {
+  0% { transform: scale(1); }
+  10% { transform: scale(1.06); }
+  30% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
 </style>
 </head>
 <body>
@@ -169,8 +183,8 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 
 <!-- Drawer -->
 <div class="drawer" id="drawer" aria-hidden="true">
-  <div class="backdrop" id="drawerBackdrop"></div>
-  <div class="panel" role="dialog" aria-label="Basket drawer">
+  <div class="backdrop" id="drawerBackdrop" tabindex="-1"></div>
+  <div class="panel" role="dialog" aria-label="Basket drawer" tabindex="-1">
     <header>
       <div class="wrap" style="display:flex;justify-content:space-between;align-items:center">
         <strong>🧺 Your Basket</strong>
@@ -188,8 +202,14 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
         <div class="row2" id="discountRow" style="display:none;"><span>Discount</span><span id="discount">-£0.00</span></div>
         <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
 
+        <!-- Free shipping progress -->
+        <div class="progress-wrap">
+          <div class="progress-bar" id="shipProgress"></div>
+        </div>
+        <div class="progress-msg" id="shipMsg"></div>
+
         <!-- Discount code input -->
-        <div class="discount-row">
+        <div class="discount-row" style="margin-top:12px">
           <input id="discountCode" placeholder="Discount code"/>
           <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
         </div>
@@ -237,13 +257,17 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
   </div>
 </div>
 
-<div class="toast" id="toast">Copied order to clipboard</div>
+<!-- Make toast SR-friendly + clickable for Undo -->
+<div class="toast" id="toast" role="status" aria-live="polite">Copied order to clipboard</div>
 
 <script>
 /* -------- Settings -------- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
 const PAYPAL_ME_BASE = "https://www.paypal.com/paypalme/healthandhit/";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
+
+/* Toggle whether the basket auto-opens on add (default: off) */
+const OPEN_DRAWER_ON_ADD = false;
 
 /* Discount codes */
 const DISCOUNT_CODES = {
@@ -264,7 +288,7 @@ const PRODUCTS=[
   {id:'cap',      name:'HIT Cap',             price:15.00,                                   img:'cap.png'},
   {id:'subcap',   name:'Sublimated Cap',      price:12.00,                                   img:'subcap.png'},
   {id:'mug',      name:'HIT Mug',             price:12.00,                                   img:'mug.png'},
-  {id:'bottle',   name:'HIT Bottle',          price:15.00,                                   img:'bottle.png'},
+  {id:'bottle',   name:'HIT Bottle',          price:10.00,                                   img:'bottle.png'},
   {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
   {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
   {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
@@ -276,17 +300,61 @@ const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 
-function showToast(msg='Copied order to clipboard'){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),1600);
+/* Toast with optional click handler */
+let toastTimer=null;
+function showToast(msg='Copied order to clipboard', onClick=null){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  t.onclick = null;
+  if(onClick){ t.onclick = ()=>{ onClick(); hideToast(); }; }
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(hideToast, 2000);
+}
+function hideToast(){
+  const t=document.getElementById('toast');
+  t.classList.remove('show');
+  t.onclick = null;
+}
+function bumpFab(){
+  const fab = document.getElementById('basketFab');
+  fab.classList.remove('bump');
+  void fab.offsetWidth; // restart animation
+  fab.classList.add('bump');
+  if(navigator.vibrate) navigator.vibrate(20);
 }
 function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
+
+/* last added tracking for Undo */
+let lastAddedKey = null;
+
+/* STOP auto-open: only open if OPEN_DRAWER_ON_ADD is true */
 function addToCart(line){
   const key=line.id+'|'+(line.size||'');
   const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key);
-  if(existing){ existing.qty+=line.qty; } else cart.push(line);
-  saveCart(); renderCart(); openDrawer();
+  const wasEmpty = cart.length === 0;
+
+  if(existing){ existing.qty+=line.qty; lastAddedKey = key; }
+  else { cart.push(line); lastAddedKey = key; }
+
+  // remember size preference per product
+  if(line.size){ localStorage.setItem('hh_size_'+line.id, line.size); }
+
+  saveCart(); renderCart();
+
+  // Feedback + Undo
+  showToast(`Added ${line.name}${line.size ? ' ' + line.size : ''} — Undo`, ()=>{
+    removeFromCart(lastAddedKey);
+    lastAddedKey = null;
+    showToast('Removed');
+  });
+  bumpFab();
+
+  if (OPEN_DRAWER_ON_ADD && wasEmpty) {
+    openDrawer();
+  }
 }
+
 function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart(); }
 
 function computeTotals(){
@@ -314,7 +382,7 @@ function renderProducts(){
     card.className='card';
     card.innerHTML=`
       <div class="media">
-        <img src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='comingsoon.png';">
+        <img loading="lazy" width="600" height="180" src="${p.img}" alt="${p.name}" onerror="this.onerror=null;this.src='comingsoon.png';">
       </div>
       <div class="body">
         <div>
@@ -330,13 +398,36 @@ function renderProducts(){
         </div>
         <div class="row"><button class="btn btn-accent btn-block add">Add to Basket</button></div>
       </div>`;
+
+    // Restore saved size preference
+    if(p.sizes){
+      const saved = localStorage.getItem('hh_size_'+p.id);
+      if(saved){
+        const sel = card.querySelector('.size');
+        if([...sel.options].some(o=>o.value===saved)) sel.value = saved;
+      }
+    }
+
+    // Debounce per-card to prevent double taps
+    let adding = false;
+
     card.querySelector('.add').onclick=()=>{
+      if (adding) return;
+      adding = true;
+
       const sizeEl=card.querySelector('.size');
       const size=p.sizes?(sizeEl.value||''):'';
-      if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); return; }
+      if(p.sizes && !size){
+        alert('Please choose a size');
+        sizeEl.classList.add('error');
+        adding = false;
+        return;
+      }
       sizeEl.classList.remove('error');
       const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
       addToCart({id:p.id,name:p.name,price:p.price,size,qty});
+
+      setTimeout(()=>adding=false,300);
     };
     grid.appendChild(card);
   });
@@ -375,15 +466,42 @@ function renderCart(){
   if(discountValue>0){ dr.style.display=''; dv.textContent='-'+currency(discountValue).replace('£',''); }
   else{ dr.style.display='none'; }
 
+  // Update free shipping progress
+  const prog = document.getElementById('shipProgress');
+  const msg  = document.getElementById('shipMsg');
+  const need = Math.max(0, FREE_SHIPPING_OVER - subtotal);
+  const pct  = Math.min(100, Math.round((subtotal/Math.max(1,FREE_SHIPPING_OVER))*100));
+  prog.style.width = pct + '%';
+  prog.style.background = need === 0 ? 'linear-gradient(90deg,#48c774,#86efac)' : 'linear-gradient(90deg,#ff6b6b,#ff3939)';
+  msg.textContent = need === 0 ? '🎉 You’ve unlocked free shipping!' : `£${need.toFixed(2)} away from free shipping`;
+
   updateFab();
 }
 
-/* Drawer UX */
-function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer').setAttribute('aria-hidden','false'); }
-function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer').setAttribute('aria-hidden','true'); }
+/* Drawer UX + a11y */
+function openDrawer(){
+  const drawerEl = document.getElementById('drawer');
+  drawerEl.classList.add('open'); drawerEl.setAttribute('aria-hidden','false');
+  drawerEl.querySelector('.panel').focus?.();
+}
+function closeDrawer(){
+  const drawerEl = document.getElementById('drawer');
+  drawerEl.classList.remove('open'); drawerEl.setAttribute('aria-hidden','true');
+  document.getElementById('basketFab').focus?.();
+}
 document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
+document.addEventListener('keydown', (e)=>{
+  const drawerEl=document.getElementById('drawer');
+  if(e.key === 'Escape' && drawerEl.classList.contains('open')) closeDrawer();
+});
+
+/* Prevent scroll-wheel changing qty accidentally on desktop */
+document.addEventListener('wheel', (e)=>{
+  const el = document.activeElement;
+  if(el && el.type === 'number'){ el.blur(); }
+}, {passive:true});
 
 /* Form */
 function getFormData(){
@@ -403,6 +521,21 @@ function validateForm(showErrors=true){
   if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]').classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
   return ok;
+}
+
+/* Persist checkout form */
+document.getElementById('checkoutForm').addEventListener('input', ()=>{
+  localStorage.setItem('hh_checkout_form', JSON.stringify(getFormData()));
+});
+function restoreForm(){
+  const raw = localStorage.getItem('hh_checkout_form');
+  if(!raw) return;
+  const data = JSON.parse(raw);
+  const form = document.getElementById('checkoutForm');
+  Object.entries(data).forEach(([k,v])=>{
+    const el = form.querySelector(`[name="${k}"]`);
+    if(el!=null) el.value = v;
+  });
 }
 
 /* Build order text */
@@ -465,12 +598,9 @@ emailBtn.onclick = async ()=>{
 };
 
 function turnButtonIntoPaypal(){
-  // Compute total right now (in case they changed shipping/discount before sending email)
   const {grand}=computeTotals();
-
   emailBtn.textContent = `Pay with PayPal — ${currency(grand)}`;
   emailBtn.classList.add('pulse');
-  // Make sure it behaves as the PayPal button now
   emailBtn.onclick = ()=>{
     const {grand}=computeTotals(); // re-check total at click time
     const amount = grand.toFixed(2);
@@ -510,8 +640,9 @@ function confettiBurst(){
 
 /* Init */
 function init(){
-  renderProducts(); renderCart(); updateFab();
+  renderProducts(); renderCart(); updateFab(); restoreForm();
 
+  // Welcome / discount popup once per session
   if(!sessionStorage.getItem('welcomeShown')){
     document.getElementById('discountPopup').style.display='flex';
     sessionStorage.setItem('welcomeShown','true');

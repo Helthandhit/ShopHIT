@@ -65,6 +65,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn-accent{background:var(--accent);color:#fff}
 .btn-bad{background:var(--bad);color:#fff}
+.btn-neutral{background:#3a3b47;color:#fff}
 .btn-block{width:100%}
 .small{font-size:.92rem}
 
@@ -241,8 +242,14 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
         A PayPal button will appear afterwards.
       </div>
 
-      <!-- We reuse the SAME button; it becomes PayPal after email -->
+      <!-- Reused button: becomes PayPal after email -->
       <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
+
+      <!-- NEW: alternative payment buttons (shown after email) -->
+      <div id="altPayments" style="display:none; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-neutral" id="gpayBtn" type="button">Pay with Google Pay</button>
+        <button class="btn btn-neutral" id="codBtn" type="button">Cash on Delivery</button>
+      </div>
     </div>
   </div>
 </div>
@@ -263,7 +270,7 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 <script>
 /* -------- Settings -------- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
-/* CHANGED: use short paypal.me domain for reliable prefilled amounts */
+/* Short paypal.me for reliable prefilled amounts */
 const PAYPAL_ME_BASE = "https://paypal.me/healthandhit/";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
@@ -578,8 +585,11 @@ document.getElementById('applyDiscountBtn').onclick=()=>{
   renderCart();
 };
 
-/* Email first, then switch to PayPal button */
+/* Email first, then switch to PayPal button + alt payments */
 const emailBtn = document.getElementById('emailOrderBtn');
+const altPayments = document.getElementById('altPayments');
+const gpayBtn = document.getElementById('gpayBtn');
+const codBtn = document.getElementById('codBtn');
 
 emailBtn.onclick = async ()=>{
   if(!validateForm(true)) return;
@@ -591,14 +601,15 @@ emailBtn.onclick = async ()=>{
   const mailto=`mailto:${encodeURIComponent(MERCHANT_EMAIL)}?subject=${encodeURIComponent('New Order — '+c.firstName+' '+c.lastName)}&body=${encodeURIComponent(text)}`;
   window.location.href=mailto;
 
-  // Mark stage and switch the button to PayPal
+  // Mark stage and show payment options
   emailSent = true;
-  document.getElementById('payGate').innerHTML = '✔️ Email opened. <b>Step 2:</b> Click <em>Pay with PayPal</em> to complete payment.';
-  turnButtonIntoPaypal();
+  document.getElementById('payGate').innerHTML = '✔️ Email opened. <b>Step 2:</b> Choose a payment option below.';
+  turnButtonIntoPaypal(); // main button becomes PayPal
+  altPayments.style.display = 'flex'; // show Google Pay + COD
   confettiBurst();
 };
 
-/* CHANGED: robust amount + same-tab navigation for paypal.me */
+/* PayPal: robust amount + same-tab navigation */
 function turnButtonIntoPaypal(){
   const {grand}=computeTotals();
   emailBtn.textContent = `Pay with PayPal — ${currency(grand)}`;
@@ -610,13 +621,44 @@ function turnButtonIntoPaypal(){
               .toFixed(2)
               .replace(',', '.');               // locale safety
     const url = PAYPAL_ME_BASE + amount;
-    try {
-      window.location.href = url;               // same-tab preferred
-    } catch(e) {
-      window.open(url, '_blank');
-    }
+    try { window.location.href = url; } catch(e) { window.open(url, '_blank'); }
   };
 }
+
+/* Google Pay option (best-effort): copies details + tries Android deep link */
+function openGooglePay(){
+  const {grand} = computeTotals();
+  let amount = Math.max(0, grand);
+  amount = (Math.round(amount * 100) / 100).toFixed(2);
+
+  // Copy handy instructions to clipboard
+  const msg = `Google Pay\nRecipient: ${MERCHANT_EMAIL}\nAmount: £${amount}\nReference: HealthAndHIT Order`;
+  navigator.clipboard?.writeText(msg).catch(()=>{});
+  showToast('Payment details copied for Google Pay');
+
+  // Attempt Android deep link (may vary by device/region)
+  const ua = navigator.userAgent || '';
+  if (/Android/i.test(ua)) {
+    // Intent scheme (best-effort; harmless if unsupported)
+    const intent = `intent://pay?pa=${encodeURIComponent(MERCHANT_EMAIL)}&am=${encodeURIComponent(amount)}&cu=GBP#Intent;scheme=gpay;package=com.google.android.apps.nbu.paisa.user;end`;
+    try { window.location.href = intent; return; } catch(e) {}
+  }
+
+  // Fallback: clear instructions
+  alert(`Open Google Pay and send £${amount} to ${MERCHANT_EMAIL}.\n(These details are on your clipboard.)`);
+}
+
+/* Cash on Delivery option */
+function chooseCOD(){
+  const {grand} = computeTotals();
+  const amount = (Math.round(Math.max(0, grand) * 100) / 100).toFixed(2);
+  alert(`Cash on Delivery selected.\nAmount due on delivery: £${amount}\n\nYou’ll receive an email confirmation shortly.`);
+  showToast('Cash on Delivery selected');
+}
+
+/* Wire up alt payment buttons */
+gpayBtn.onclick = openGooglePay;
+codBtn.onclick = chooseCOD;
 
 /* Simple confetti (lightweight) */
 function confettiBurst(){

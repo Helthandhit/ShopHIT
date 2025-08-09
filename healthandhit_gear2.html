@@ -263,7 +263,8 @@ input.error, textarea.error, select.error{outline:2px solid var(--bad);}
 <script>
 /* -------- Settings -------- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
-const PAYPAL_ME_BASE = "https://www.paypal.com/paypalme/healthandhit/";
+/* CHANGED: use short paypal.me domain for reliable prefilled amounts */
+const PAYPAL_ME_BASE = "https://paypal.me/healthandhit/";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 
 /* Toggle whether the basket auto-opens on add (default: off) */
@@ -597,14 +598,23 @@ emailBtn.onclick = async ()=>{
   confettiBurst();
 };
 
+/* CHANGED: robust amount + same-tab navigation for paypal.me */
 function turnButtonIntoPaypal(){
   const {grand}=computeTotals();
   emailBtn.textContent = `Pay with PayPal — ${currency(grand)}`;
   emailBtn.classList.add('pulse');
   emailBtn.onclick = ()=>{
-    const {grand}=computeTotals(); // re-check total at click time
-    const amount = grand.toFixed(2);
-    window.open(PAYPAL_ME_BASE + amount, '_blank');
+    const {grand} = computeTotals();            // re-check at click
+    let amount = Math.max(0, grand);            // guard
+    amount = (Math.round(amount * 100) / 100)   // normalize
+              .toFixed(2)
+              .replace(',', '.');               // locale safety
+    const url = PAYPAL_ME_BASE + amount;
+    try {
+      window.location.href = url;               // same-tab preferred
+    } catch(e) {
+      window.open(url, '_blank');
+    }
   };
 }
 

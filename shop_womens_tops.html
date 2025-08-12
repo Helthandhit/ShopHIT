@@ -29,10 +29,11 @@ header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e2
 
 /* Hero notice */
 .hero{padding:18px 16px 8px}
-.hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:#muted}
+.hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:var(--muted)}
 
 /* Product grid */
 .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch}
+.grid .full{grid-column:1 / -1}
 @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
 
@@ -257,7 +258,7 @@ const DELIVERY_LABELS = {
   post:  'Standard post — £' + SHIPPING_FLAT.toFixed(2)
 };
 
-/* Products (added only two new items, nothing else changed) */
+/* Products (women’s items fixed) */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -273,8 +274,8 @@ const PRODUCTS=[
   {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'},
 
   /* NEW: Women's Tops (personalisation +£1.50) */
-  {id:'w_tshirt', name:\"Women's T-Shirt\",   price:12.00, sizes:['S','M','L','XL','2XL'],  img:'woman_tshirt.png', personalize:true},
-  {id:'w_vest',   name:\"Women's Vest\",      price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
+  {id:'w_tshirt', name:"Women's T-Shirt",     price:12.00, sizes:['S','M','L','XL','2XL'],  img:'woman_tshirt.png', personalize:true},
+  {id:'w_vest',   name:"Women's Vest",        price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
 ];
 
 /* Helpers */
@@ -559,10 +560,10 @@ document.getElementById('deliverySeg').addEventListener('click',(e)=>{
 function getDeliveryLabel(){ return DELIVERY_LABELS[selectedDeliveryMethod] || 'Local pickup/delivery — FREE'; }
 function buildOrderText(){
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
-  const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\\n');
-  const address=`${c.firstName} ${c.lastName}\\n${c.addr1}\\n${c.addr2||''}\\n${c.city}${c.county?`, ${c.county}`:''}\\n${c.postcode}\\n${c.country}`;
-  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\\n`:'';
-  const deliverySection=`Delivery method: ${getDeliveryLabel()}\\n`;
+  const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
+  const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
+  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
+  const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
   return `ORDER SUMMARY — HealthAndHIT
 ----------------------------
 ${lines}
@@ -578,7 +579,7 @@ Phone: ${c.phone||'-'}
 Address:
 ${address}
 
-${c.notes?`Notes:\\n${c.notes}\\n`:''}
+${c.notes?`Notes:\n${c.notes}\n`:''}
 (Please reply to confirm & arrange payment.)`;
 }
 
@@ -658,7 +659,6 @@ emailBtn.onclick=async ()=>{
   document.getElementById('gmailLink').href=links.gmail;
   document.getElementById('outlookLink').href=links.outlook;
   document.getElementById('yahooLink').href=links.yahoo;
-  fall.style.display='block';
   document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
   // Update gate text

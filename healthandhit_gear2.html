@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>HealthAndHIT — Shop</title>
+<title>HealthAndHIT — Shop (Inventory Enabled)</title>
 <meta name="color-scheme" content="dark light">
 
 <style>
@@ -33,6 +33,7 @@ header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e2
 
 /* Product grid */
 .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch}
+.grid .full{grid-column:1 / -1}
 @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
 
@@ -80,13 +81,13 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .totals .row2{display:flex;justify-content:space-between;margin:6px 0}
 .totals .grand{font-size:1.15rem;font-weight:800;color:#fff}
 
-/* Free shipping progress */
-.progress-wrap{margin-top:10px;background:#1e1f26;border:1px solid #2d2e39;border-radius:10px;overflow:hidden}
-.progress-bar{height:10px;width:0}
-.progress-msg{font-size:.9rem;color:#cfcfe5;margin:6px 0 0}
+/* Delivery method segmented control */
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.seg button{flex:1;border:1px solid #3a3b47;background:#1f2027;color:#fff;border-radius:10px;padding:10px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{outline:2px solid var(--ok); border-color:#2a3;}
 
 /* Discount row */
-.discount-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+.discount-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .discount-row input{flex:1}
 
 /* Sticky action bar */
@@ -94,16 +95,17 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   padding:12px 16px; display:flex; flex-direction:column; gap:10px;}
 .gate{border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;}
 
+/* Acknowledgement */
+.ack{display:flex;gap:10px; align-items:flex-start; background:#1f2027; border:1px solid #2c2d36; padding:10px; border-radius:10px;}
+.ack input{margin-top:3px}
+.ack small{color:#cfcfe5; line-height:1.35}
+
 /* Popup + toast */
 #discountPopup{position: fixed; inset:0; background: rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:999;}
 #discountPopup .box{background: var(--card); padding: 20px; border-radius: var(--radius); max-width: 320px; text-align:center; box-shadow: var(--shadow);}
 #discountCloseBtn{margin-top:10px; padding:8px 14px; border:0; background:var(--accent); color:#fff; border-radius:8px; cursor:pointer;}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%); background:#000b;border:1px solid #333;padding:10px 14px;border-radius:10px;z-index:120;color:#fff;display:none;cursor:pointer}
 .toast.show{display:block}
-
-/* Pulse for PayPal stage */
-.pulse{animation:pulse 1.2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,57,57,.6)}70%{box-shadow:0 0 0 12px rgba(255,57,57,0)}100%{box-shadow:0 0 0 0 rgba(255,57,57,0)}}
 
 /* Confetti canvas */
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:200}
@@ -126,7 +128,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 <button class="basket-fab" id="basketFab">🧺 <span class="count" id="basketCount">0</span> <span class="count" id="basketTotal">£0.00</span></button>
 
 <section class="hero wrap">
-  <div class="notice">🔴 <b>Now Open</b> — Add items, then tap the basket to checkout.</div>
+  <div class="notice">🔴 <b>Now Open</b> — Per-size stock is live. Add items, then tap the basket to checkout.</div>
 </section>
 
 <section class="grid" id="productsGrid"></section>
@@ -152,9 +154,14 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
         <div class="row2" id="discountRow" style="display:none;"><span>Discount</span><span id="discount">-£0.00</span></div>
         <div class="row2 grand"><span>Total</span><span id="grand">£0.00</span></div>
 
-        <div class="progress-wrap"><div class="progress-bar" id="shipProgress"></div></div>
-        <div class="progress-msg" id="shipMsg"></div>
+        <!-- Delivery method (FREE local pickup/delivery by default) -->
+        <div class="section-title">Delivery method</div>
+        <div class="seg" id="deliverySeg">
+          <button type="button" data-method="local" aria-pressed="true">Local pickup / delivery — FREE</button>
+          <button type="button" data-method="post" aria-pressed="false">Standard post — £3.99</button>
+        </div>
 
+        <!-- Discount -->
         <div class="discount-row" style="margin-top:12px">
           <input id="discountCode" placeholder="Discount code"/>
           <button class="btn btn-accent" id="applyDiscountBtn" type="button">Apply</button>
@@ -182,11 +189,20 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 
     <div class="checkout-actions">
       <div class="gate" id="payGate">
-        <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>A PayPal button will appear afterwards.
+        <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>The PayPal button will appear afterwards.
       </div>
-      <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
 
-      <!-- Email fallback -->
+      <!-- Mandatory acknowledgement -->
+      <label class="ack" for="orderAcknowledge">
+        <input type="checkbox" id="orderAcknowledge" />
+        <small>
+          I understand this is a home-run startup. Some items may be out of stock. If an item isn’t available, a substitute or refund will be offered. Minor errors are possible while I’m building this up — I’ll do my best to provide the best service.
+        </small>
+      </label>
+
+      <button class="btn btn-accent btn-block" id="emailOrderBtn" disabled>Send Order by Email</button>
+
+      <!-- Webmail fallback -->
       <div id="emailFallback" class="gate" style="display:none">
         Email didn’t open? Choose one:
         <div class="row" style="margin-top:8px; gap:8px; flex-wrap:wrap">
@@ -195,8 +211,11 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <a id="yahooLink"    class="btn btn-accent" target="_blank" rel="noopener">Yahoo Mail</a>
           <button id="copyOrderBtn" class="btn">Copy order text</button>
         </div>
-        <div class="muted" style="margin-top:6px">We also opened PayPal in a new tab so you can pay now.</div>
+        <div class="muted" style="margin-top:6px">The order text is copied — just paste it in your email.</div>
       </div>
+
+      <!-- PayPal Smart Buttons render target -->
+      <div id="paypalButtons" style="display:none; padding-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -214,10 +233,12 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 <!-- Toast -->
 <div class="toast" id="toast" role="status" aria-live="polite">Copied order to clipboard</div>
 
+<!-- PayPal JS SDK (LIVE) -->
+<script src="https://www.paypal.com/sdk/js?client-id=AQInbYyMMgyLAFSKTM_wB35q_8uROVBe9K_KzNyJEKeMMaQgtJ_DFEyY519B6n1HhB0Jzl0gNiq_AH5C&currency=GBP&intent=capture&enable-funding=card"></script>
+
 <script>
 /* -------- Settings -------- */
 const MERCHANT_EMAIL = "healthandhit@gmail.com";
-const PAYPAL_ME_BASE = "https://www.paypal.com/paypalme/healthandhit/";
 const SHIPPING_FLAT=3.99, FREE_SHIPPING_OVER=60;
 const OPEN_DRAWER_ON_ADD = false;
 
@@ -230,7 +251,14 @@ const DISCOUNT_CODES = {
 };
 let appliedDiscount = null;
 
-/* Products */
+/* Delivery method state (default FREE local pickup/delivery) */
+let selectedDeliveryMethod = 'local';
+const DELIVERY_LABELS = {
+  local: 'Local pickup/delivery — FREE',
+  post:  'Standard post — £' + SHIPPING_FLAT.toFixed(2)
+};
+
+/* Products (women’s items fixed) */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -243,13 +271,56 @@ const PRODUCTS=[
   {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
   {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
   {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
-  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
+  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'},
+
+  /* NEW: Women's Tops (personalisation +£2.50) */
+  {id:'w_tshirt', name:"Women's T-Shirt",     price:12.00, sizes:['S','M','L','XL','2XL'],  img:'woman_tshirt.png', personalize:true},
+  {id:'w_vest',   name:"Women's Vest",        price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
 ];
 
 /* Helpers */
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
+
+/* ------------ INVENTORY (JSON file) ------------ */
+let INVENTORY = {}; // structure: { productId: { SIZE: qty, ... } } or { productId: { ONESIZE: qty } }
+async function loadInventory(){
+  try{
+    const res = await fetch('inventory.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('missing');
+    const data = await res.json();
+    INVENTORY = data || {};
+  }catch(e){
+    console.warn('inventory.json not found, treating as unlimited stock', e);
+    INVENTORY = {}; // unlimited
+  }
+}
+const qtyFor = (pid, size) => {
+  const rec = INVENTORY[pid];
+  if(!rec) return Infinity;
+  if(size) return (rec[size] ?? 0);
+  if('ONESIZE' in rec) return rec['ONESIZE'];
+  return 0;
+};
+const productSoldOut = (pid, sizes) => {
+  if(!sizes || sizes.length===0) return qtyFor(pid,'') <= 0;
+  return sizes.every(sz => qtyFor(pid, sz) <= 0);
+};
+function buildSizeControl(p){
+  if(!p.sizes || p.sizes.length===0){
+    const left = qtyFor(p.id,'');
+    const badge = (left===Infinity) ? '' : `<span class="muted">Stock: ${left}</span>`;
+    return `<input type="hidden" class="size"><span>${badge}</span>`;
+  }
+  const opts = p.sizes.map(sz=>{
+    const left = qtyFor(p.id, sz);
+    const label = `${sz} ${left===Infinity?'':'(' + left + ')'}`;
+    const disabled = (left<=0) ? 'disabled' : '';
+    return `<option value="${sz}" ${disabled}>${label}${left<=0?' — Sold out':''}</option>`;
+  }).join('');
+  return `<select class="size"><option value="">Size</option>${opts}</select>`;
+}
 
 /* Toast */
 let toastTimer=null;
@@ -267,24 +338,40 @@ function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); upda
 /* Add/Remove */
 let lastAddedKey=null;
 function addToCart(line){
-  const key=line.id+'|'+(line.size||'');
-  const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key);
+  const key=line.id+'|'+(line.size||'')+'|'+(line.personalize?'P':'-');
+  // enforce stock before adding
+  const left = qtyFor(line.id, line.size||'');
+  if(!(left===Infinity) && line.qty>left){
+    alert(`Only ${left} left for that selection.`);
+    return;
+  }
+  const existing=cart.find(l=>(l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-'))===key);
   const wasEmpty = cart.length===0;
-
-  if(existing){ existing.qty+=line.qty; lastAddedKey=key; } else { cart.push(line); lastAddedKey=key; }
+  if(existing){
+    const newQty = existing.qty + line.qty;
+    const cap = (left===Infinity)?newQty:Math.min(newQty, left);
+    existing.qty = cap;
+  } else {
+    cart.push(line);
+  }
   if(line.size){ localStorage.setItem('hh_size_'+line.id, line.size); }
-
   saveCart(); renderCart();
-  showToast(`Added ${line.name}${line.size?' '+line.size:''} — Undo`, ()=>{ removeFromCart(lastAddedKey); lastAddedKey=null; showToast('Removed'); });
-  bumpFab();
+  showToast(`Added ${line.name}${line.size?' '+line.size:''}${line.personalize?' + personalised':''} — Undo`, ()=>{ removeFromCart(key); lastAddedKey=null; showToast('Removed'); });
+  lastAddedKey=key; bumpFab();
   if(OPEN_DRAWER_ON_ADD && wasEmpty) openDrawer();
 }
-function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart(); }
+function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-'))!==key); saveCart(); renderCart(); }
 
 /* Totals */
 function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
-  let shipping=subtotal===0?0:(subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
+  // Base shipping from selected delivery method
+  let shipping = 0;
+  if(subtotal>0){
+    if(selectedDeliveryMethod==='local') shipping = 0;
+    else shipping = (subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
+  }
+  // Discounts
   let discountValue=0;
   if(appliedDiscount){
     if(appliedDiscount.type==='percent') discountValue=subtotal*(appliedDiscount.value/100);
@@ -305,10 +392,11 @@ function stepperHTML(initial=1){
     </div>`;
 }
 
-/* Render products (FIXED template strings — no backslashes in ${...}) */
+/* Render products */
 function renderProducts(){
   grid.innerHTML='';
   PRODUCTS.forEach(p=>{
+    const soldOut = productSoldOut(p.id, p.sizes);
     const card=document.createElement('article');
     card.className='card';
     card.innerHTML=`
@@ -317,24 +405,23 @@ function renderProducts(){
       </div>
       <div class="body">
         <div>
-          <h3 class="title">${p.name}</h3>
+          <h3 class="title">${p.name} ${soldOut?'<span class="muted">— Sold out</span>':''}</h3>
           <div class="muted">${p.sizes?'Clothing':'Accessory'}</div>
           <div class="row"><span class="price">${currency(p.price)}</span></div>
+          ${p.personalize ? `<label class="row" style="gap:8px"><input type="checkbox" class="personalize"> Personalised phrase (+£2.50)</label>` : ''}
           <div class="row">
-            ${p.sizes
-              ? `<select class="size"><option value="">Size</option>${p.sizes.map(s=>`<option>${s}</option>`).join('')}</select>`
-              : `<input type="hidden" class="size">`}
+            ${buildSizeControl(p)}
             ${stepperHTML(1)}
           </div>
         </div>
-        <div class="row"><button class="btn btn-accent btn-block add">Add to Basket</button></div>
+        <div class="row"><button class="btn btn-accent btn-block add" ${soldOut?'disabled':''}>${soldOut?'Sold out':'Add to Basket'}</button></div>
       </div>`;
-
+    // restore saved size if available and in stock
     if(p.sizes){
+      const sel=card.querySelector('.size');
       const saved=localStorage.getItem('hh_size_'+p.id);
-      if(saved){ const sel=card.querySelector('.size'); if([...sel.options].some(o=>o.value===saved)) sel.value=saved; }
+      if(saved && [...sel.options].some(o=>o.value===saved && !o.disabled)) sel.value=saved;
     }
-
     let adding=false;
     card.querySelector('.add').onclick=()=>{
       if(adding) return; adding=true;
@@ -343,7 +430,11 @@ function renderProducts(){
       if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); adding=false; return; }
       sizeEl.classList.remove('error');
       const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
-      addToCart({id:p.id,name:p.name,price:p.price,size,qty});
+      const left = qtyFor(p.id, p.sizes?size:'');
+      if(!(left===Infinity) && qty>left){ alert(`Only ${left} left for that size.`); adding=false; return; }
+      const personalize = !!(p.personalize && card.querySelector('.personalize')?.checked);
+      const unitPrice = p.price + (personalize ? 2.50 : 0);
+      addToCart({id:p.id,name:p.name,price:unitPrice,size,qty,personalize});
       setTimeout(()=>adding=false,300);
     };
     grid.appendChild(card);
@@ -355,13 +446,15 @@ function renderCart(){
   const cartItems=document.getElementById('cartItems');
   cartItems.innerHTML=cart.length?'' : '<div class="note">Your basket is empty.</div>';
   cart.forEach(l=>{
-    const key=l.id+'|'+(l.size||'');
+    const key=l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-');
     const row=document.createElement('div');
     row.className='cart-line';
     row.dataset.key=key;
+    const left = qtyFor(l.id, l.size||'');
+    const capNote = (left!==Infinity) ? `<span class="muted"> (Max ${left})</span>` : '';
     row.innerHTML=`
       <div>
-        <strong>${l.name}${l.size?` — ${l.size}`:''}</strong>
+        <strong>${l.name}${l.size?` — ${l.size}`:''}${l.personalize?' + Personalised':''}</strong> ${capNote}
         <div class="meta">${currency(l.price)} ×&nbsp; ${stepperHTML(l.qty)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -380,35 +473,45 @@ function renderCart(){
   const dr=document.getElementById('discountRow'), dv=document.getElementById('discount');
   if(discountValue>0){ dr.style.display=''; dv.textContent='-'+currency(discountValue).replace('£',''); } else { dr.style.display='none'; }
 
-  const prog=document.getElementById('shipProgress'), msg=document.getElementById('shipMsg');
-  const need=Math.max(0, FREE_SHIPPING_OVER - subtotal);
-  const pct=Math.min(100, Math.round((subtotal/Math.max(1,FREE_SHIPPING_OVER))*100));
-  prog.style.width=pct+'%';
-  prog.style.background=need===0?'linear-gradient(90deg,#48c774,#86efac)':'linear-gradient(90deg,#ff6b6b,#ff3939)';
-  msg.textContent=need===0?'🎉 You’ve unlocked free shipping!':`£${need.toFixed(2)} away from free shipping`;
-
   updateFab();
+
+  // Keep PayPal buttons synced with the new total
+  if (document.getElementById('paypalButtons').style.display === 'block') {
+    renderPayPalButtons();
+  }
 }
 
-/* Quantity stepper delegation */
+/* Quantity stepper delegation (respect stock caps) */
 document.addEventListener('click',(e)=>{
   const btn=e.target.closest('.stepper .inc, .stepper .dec'); if(!btn) return;
   const wrap=btn.closest('.stepper'); const input=wrap.querySelector('input.qty');
   let val=Math.max(1, parseInt(input.value||'1',10));
   if(btn.classList.contains('inc')) val++; else val=Math.max(1,val-1);
-  input.value=String(val);
-
   const row=btn.closest('.cart-line');
-  if(row){ const key=row.dataset.key; const line=cart.find(l=>(l.id+'|'+(l.size||''))===key); if(line){ line.qty=val; saveCart(); renderCart(); } }
+  if(row){
+    const key=row.dataset.key;
+    const line=cart.find(l=>(l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-'))===key);
+    if(line){
+      const left = qtyFor(line.id, line.size||'');
+      if(!(left===Infinity)) val = Math.min(val, left);
+      line.qty=val; input.value=String(val); saveCart(); renderCart();
+    }
+  } else {
+    input.value=String(val);
+  }
 },{passive:false});
 
 document.addEventListener('input',(e)=>{
   const input=e.target;
   if(!(input.matches && input.matches('.cart-line input.qty'))) return;
   const row=input.closest('.cart-line'); const key=row?.dataset?.key;
-  const line=cart.find(l=>(l.id+'|'+(l.size||''))===key);
-  const val=Math.max(1, parseInt(input.value||'1',10));
-  if(line){ line.qty=val; saveCart(); renderCart(); }
+  const line=cart.find(l=>(l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-'))===key);
+  let val=Math.max(1, parseInt(input.value||'1',10));
+  if(line){
+    const left = qtyFor(line.id, line.size||'');
+    if(!(left===Infinity)) val = Math.min(val, left);
+    line.qty=val; input.value=String(val); saveCart(); renderCart();
+  }
 });
 
 /* Drawer UX */
@@ -432,6 +535,9 @@ function validateForm(showErrors=true){
   for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ form.querySelector(`[name="${k}"]`)?.classList.add('error'); } } }
   if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]')?.classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
+  // Mandatory acknowledgement
+  const ack = document.getElementById('orderAcknowledge');
+  if(!ack.checked){ ok=false; if(showErrors){ alert('Please tick the acknowledgement to continue.'); } }
   return ok;
 }
 document.getElementById('checkoutForm').addEventListener('input',()=>{ localStorage.setItem('hh_checkout_form', JSON.stringify(getFormData())); });
@@ -440,12 +546,24 @@ function restoreForm(){ const raw=localStorage.getItem('hh_checkout_form'); if(!
   Object.entries(data).forEach(([k,v])=>{ const el=form.querySelector(`[name="${k}"]`); if(el!=null) el.value=v; });
 }
 
+/* Delivery segmented control handlers */
+document.getElementById('deliverySeg').addEventListener('click',(e)=>{
+  const btn = e.target.closest('button[data-method]'); if(!btn) return;
+  const seg = document.getElementById('deliverySeg');
+  [...seg.querySelectorAll('button')].forEach(b=>b.setAttribute('aria-pressed','false'));
+  btn.setAttribute('aria-pressed','true');
+  selectedDeliveryMethod = btn.dataset.method === 'post' ? 'post' : 'local';
+  renderCart();
+});
+
 /* Order summary builder */
+function getDeliveryLabel(){ return DELIVERY_LABELS[selectedDeliveryMethod] || 'Local pickup/delivery — FREE'; }
 function buildOrderText(){
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
-  const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
+  const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
   const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
   const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
+  const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
   return `ORDER SUMMARY — HealthAndHIT
 ----------------------------
 ${lines}
@@ -453,7 +571,7 @@ ${lines}
 Subtotal: ${currency(subtotal)}
 ${discSection}Shipping: ${currency(shipping)}
 Total: ${currency(grand)}
-
+${deliverySection}
 CUSTOMER
 Name: ${c.firstName} ${c.lastName}
 Email: ${c.email}
@@ -461,76 +579,117 @@ Phone: ${c.phone||'-'}
 Address:
 ${address}
 
-${c.notes?`Notes:\n${c.notes}\n`:''}(Please reply to confirm & arrange payment.)`;
+${c.notes?`Notes:\n${c.notes}\n`:''}
+(Please reply to confirm & arrange payment.)`;
 }
 
-/* Discount code apply */
+/* Discount code */
 document.getElementById('applyDiscountBtn').onclick=()=>{
   const code=(document.getElementById('discountCode').value||'').trim().toUpperCase();
   const msg=document.getElementById('discountMsg');
   if(!code){ appliedDiscount=null; msg.textContent=''; renderCart(); return; }
-  if(DISCOUNT_CODES[code]){ appliedDiscount=DISCOUNT_CODES[code];
-    msg.textContent = code==='HITFREE' ? 'Free shipping applied.' : `${appliedDiscount.value}% off applied.`;
+  if(DISCOUNT_CODES[code]){
+    appliedDiscount=DISCOUNT_CODES[code];
+    msg.textContent = code==='HITFREE' ? 'Free delivery applied.' : `${appliedDiscount.value}% off applied.`;
   }else{ appliedDiscount=null; msg.textContent='Invalid code.'; }
   renderCart();
 };
 
-/* Email helpers (PC + webmail fallback) */
-function buildEmailLinks({subject, body, to}){
-  const toEnc=encodeURIComponent(to), sub=encodeURIComponent(subject), bod=encodeURIComponent(body);
-  return {
-    mailto:`mailto:${toEnc}?subject=${sub}&body=${bod}`,
-    gmail:`https://mail.google.com/mail/?view=cm&fs=1&to=${toEnc}&su=${sub}&body=${bod}`,
-    outlook:`https://outlook.live.com/mail/0/deeplink/compose?to=${toEnc}&subject=${sub}&body=${bod}`,
-    yahoo:`https://compose.mail.yahoo.com/?to=${toEnc}&subject=${sub}&body=${bod}`
-  };
+/* ----- PayPal Smart Buttons ----- */
+let lastRenderedAmount = null;
+function renderPayPalButtons(){
+  const host = document.getElementById('paypalButtons');
+  host.style.display = 'block';
+  const { grand } = computeTotals();
+  const amount = (Math.round(grand*100)/100).toFixed(2);
+  if (amount === lastRenderedAmount && host.firstChild) return;
+  host.innerHTML = "";
+  lastRenderedAmount = amount;
+
+  paypal.Buttons({
+    style: { layout:'horizontal', shape:'pill', label:'pay' },
+    createOrder: (data, actions) => {
+      const { grand } = computeTotals();
+      const value = (Math.round(grand*100)/100).toFixed(2);
+      return actions.order.create({
+        purchase_units: [{
+          amount: { currency_code: 'GBP', value },
+          description: 'HealthAndHIT order'
+        }]
+      });
+    },
+    onApprove: (data, actions) => actions.order.capture().then(details => {
+      confettiBurst();
+      showToast(`Thanks ${details?.payer?.name?.given_name || ''}! Payment received.`);
+      cart=[]; saveCart(); renderCart();
+      alert('Payment complete. We’ll confirm your order by email shortly.');
+    }),
+    onError: (err) => { console.error(err); alert('PayPal error — please try again.'); }
+  }).render('#paypalButtons');
 }
 
-/* Email then PayPal */
+/* ---- PayPal.me auto-open helper ---- */
+function buildPayPalMeUrl(){
+  const { grand } = computeTotals();
+  const amount = (Math.round(grand*100)/100).toFixed(2);
+  return `https://www.paypal.me/healthandhit/${amount}`;
+}
+
+/* Email flow (requires acknowledgement) */
 const emailBtn=document.getElementById('emailOrderBtn');
+const ackBox=document.getElementById('orderAcknowledge');
+ackBox.addEventListener('change', ()=>{ emailBtn.disabled = !ackBox.checked; });
+
 emailBtn.onclick=async ()=>{
   if(!validateForm(true)) return;
-  const c=getFormData(); const text=buildOrderText();
-  try{ await navigator.clipboard.writeText(text); showToast('Order copied. Opening email…'); }catch(e){}
+
+  const c=getFormData();
+  const text=buildOrderText();
+
+  try { await navigator.clipboard.writeText(text); showToast('Order copied to clipboard'); } catch(e){}
+
   const subject=`New Order — ${c.firstName} ${c.lastName}`;
   const links=buildEmailLinks({subject, body:text, to:MERCHANT_EMAIL});
 
-  // try default email app
+  // Attempt default mail client
   window.location.href=links.mailto;
 
-  // show webmail fallback
+  // Webmail fallback links
   const fall=document.getElementById('emailFallback');
   document.getElementById('gmailLink').href=links.gmail;
   document.getElementById('outlookLink').href=links.outlook;
   document.getElementById('yahooLink').href=links.yahoo;
-  fall.style.display='block';
   document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
-  // switch to PayPal button + also open now
-  document.getElementById('payGate').innerHTML='✔️ Email step ready. <b>Step 2:</b> Click <em>Pay with PayPal</em> to complete payment.';
-  turnButtonIntoPaypal();
-  const {grand}=computeTotals(); window.open(PAYPAL_ME_BASE + grand.toFixed(2), '_blank');
+  // Update gate text
+  const gate = document.getElementById('payGate');
+  gate.innerHTML = '✔️ Email step ready. <b>Step 2:</b> PayPal should have opened in a new tab. If not, use the PayPal button below.';
+
+  // Show PayPal buttons as fallback
+  emailBtn.style.display='none';
+  renderPayPalButtons();
+
+  // Auto-open PayPal.me with exact grand total
+  try { window.open(buildPayPalMeUrl(), '_blank', 'noopener'); } catch(e){ console.warn('Could not open PayPal.me', e); }
+
   confettiBurst();
 };
-function turnButtonIntoPaypal(){
-  const {grand}=computeTotals();
-  emailBtn.textContent=`Pay with PayPal — ${currency(grand)}`;
-  emailBtn.classList.add('pulse');
-  emailBtn.onclick=()=>{ const {grand}=computeTotals(); window.open(PAYPAL_ME_BASE + grand.toFixed(2), '_blank'); };
-}
 
 /* Confetti */
 function confettiBurst(){
   const canvas=document.getElementById('confetti'), ctx=canvas.getContext('2d');
   const w=canvas.width=window.innerWidth, h=canvas.height=window.innerHeight;
   const N=140, parts=[]; for(let i=0;i<N;i++) parts.push({x:Math.random()*w,y:-20-Math.random()*h*0.3,r:2+Math.random()*4,vy:2+Math.random()*3,vx:(Math.random()-0.5)*2,a:Math.random()*Math.PI,va:(Math.random()*0.2-0.1)});
-  let t=0; (function step(){ ctx.clearRect(0,0,w,h); parts.forEach(p=>{ p.y+=p.vy; p.x+=p.vx; p.a+=p.va; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=`hsl(${(p.x+p.y)%360},100%,60%)`; ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2); ctx.restore(); }); if(++t<120) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h); })();
+  let t=0; (function step(){ ctx.clearRect(0,0,w,h); parts.forEach(p=>{
+    p.y+=p.vy; p.x+=p.vx; p.a+=p.va; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
+    ctx.fillStyle=`hsl(${(p.x+p.y)%360},100%,60%)`; ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2); ctx.restore();
+  }); if(++t<120) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h); })();
 }
 
 /* Popup controls */
 function closeDiscount(){ const el=document.getElementById('discountPopup'); el.style.display='none'; sessionStorage.setItem('welcomeShown','true'); }
-
-function init(){
+async function init(){
+  await loadInventory();          // load inventory.json first
   renderProducts(); renderCart(); updateFab(); restoreForm();
 
   // Dev override: force show popup with ?welcome=1
@@ -544,6 +703,16 @@ function init(){
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && pop.style.display!=='none') closeDiscount(); });
 }
 init();
+
+/* --------- Email link builders --------- */
+function buildEmailLinks({to, subject, body}){
+  const enc = s => encodeURIComponent(s);
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${enc(subject)}&body=${enc(body)}`;
+  const gmail  = `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
+  const outlook= `https://outlook.live.com/mail/0/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  const yahoo  = `https://compose.mail.yahoo.com/?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  return { mailto, gmail, outlook, yahoo };
+}
 </script>
 </body>
 </html>

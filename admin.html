@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Inventory Admin — HealthAndHIT</title>
+<style>
+  body{font-family:System-ui,Segoe UI,Roboto,Arial;background:#141519;color:#fff;margin:0}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px}
+  h1{margin:0 0 10px}
+  .muted{color:#c9c9cf}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+  button,input[type=file]{background:#ff3939;border:0;color:#fff;font-weight:700;border-radius:10px;padding:10px 14px;cursor:pointer}
+  input[type=file]{background:#23242b}
+  table{width:100%;border-collapse:collapse;background:#1b1c22;border-radius:12px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid #2a2b33;text-align:left}
+  th{background:#20222a}
+  td.size{white-space:nowrap}
+  td input[type=number]{width:90px;padding:8px;border-radius:8px;border:1px solid #353644;background:#15161b;color:#fff}
+  .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Inventory Admin</h1>
+  <div class="muted">Load your current <code>inventory.json</code>, edit counts, then Download and replace it on your server.</div>
+
+  <div class="bar">
+    <input type="file" id="file" accept="application/json">
+    <button id="loadServer">Load current from server</button>
+    <button id="addProduct">Add product</button>
+    <button id="download">Download inventory.json</button>
+    <button id="copy">Copy JSON</button>
+  </div>
+
+  <div id="tableWrap"></div>
+</div>
+
+<script>
+let INV = {}; // { productId: { size: qty } }
+
+async function loadFromServer(){
+  try{
+    const res = await fetch('inventory.json', {cache:'no-store'});
+    INV = await res.json();
+    renderTable();
+  }catch(e){
+    alert('Could not load inventory.json from server. Use the file picker instead.');
+  }
+}
+document.getElementById('loadServer').onclick = loadFromServer;
+
+document.getElementById('file').addEventListener('change', async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const text=await f.text();
+  try{ INV=JSON.parse(text); renderTable(); }catch(err){ alert('Invalid JSON'); }
+});
+
+document.getElementById('addProduct').onclick=()=>{
+  const id=prompt('New product ID (e.g., tee):'); if(!id) return;
+  if(INV[id]){ alert('That ID already exists.'); return; }
+  const sizesRaw=prompt('Sizes comma-separated (leave blank for ONESIZE):','S,M,L,XL');
+  const rec={};
+  if(!sizesRaw){ rec['ONESIZE']=0; } else {
+    sizesRaw.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>rec[s]=0);
+  }
+  INV[id]=rec;
+  renderTable();
+};
+
+document.getElementById('download').onclick=()=>{
+  const blob=new Blob([JSON.stringify(INV,null,2)], {type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='inventory.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('copy').onclick=()=>{
+  navigator.clipboard.writeText(JSON.stringify(INV,null,2)).then(()=>alert('Copied JSON'));
+};
+
+function renderTable(){
+  const wrap=document.getElementById('tableWrap');
+  const ids=Object.keys(INV).sort();
+  if(!ids.length){ wrap.innerHTML='<p class="muted">No products yet. Click “Add product”.</p>'; return; }
+  let html='<table><thead><tr><th style="width:200px">Product ID</th><th>Size</th><th>Qty</th><th></th></tr></thead><tbody>';
+  ids.forEach(pid=>{
+    const sizes=Object.keys(INV[pid]);
+    if(sizes.length===0){ html+=`<tr><td>${pid}</td><td class="size muted">—</td><td class="muted">—</td><td></td></tr>`; return; }
+    sizes.forEach((sz,idx)=>{
+      html+=`<tr data-pid="${pid}" data-size="${sz}">
+        ${idx===0?`<td rowspan="${sizes.length}">${pid}<br><small class="muted">${sizes.length} size(s)</small></td>`:''}
+        <td class="size">${sz}</td>
+        <td><input type="number" min="0" value="${INV[pid][sz]}"></td>
+        <td>
+          <div class="row">
+            <button data-act="addSize">+ Size</button>
+            <button data-act="delSize">Delete size</button>
+            ${idx===0?'<button data-act="delProd">Delete product</button>':''}
+          </div>
+        </td>
+      </tr>`;
+    });
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+
+  // listeners
+  wrap.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      const tr=e.target.closest('tr');
+      const pid=tr.dataset.pid, sz=tr.dataset.size;
+      INV[pid][sz]=Math.max(0, parseInt(e.target.value||'0',10));
+    });
+  });
+  wrap.querySelectorAll('button[data-act]').forEach(btn=>{
+    btn.onclick=(e)=>{
+      const tr=e.target.closest('tr');
+      const pid=tr?.dataset?.pid, sz=tr?.dataset?.size;
+      const act=e.target.dataset.act;
+      if(act==='addSize'){
+        const newSz=prompt('New size label (e.g., 2XL or ONESIZE):'); if(!newSz) return;
+        if(INV[pid][newSz]!=null){ alert('That size already exists.'); return; }
+        INV[pid][newSz]=0; renderTable();
+      }else if(act==='delSize'){
+        if(confirm(`Delete size ${sz} for ${pid}?`)){
+          delete INV[pid][sz];
+          if(Object.keys(INV[pid]).length===0) delete INV[pid];
+          renderTable();
+        }
+      }else if(act==='delProd'){
+        if(confirm(`Delete product ${pid}?`)){
+          delete INV[pid]; renderTable();
+        }
+      }
+    };
+  });
+}
+
+renderTable();
+</script>
+</body>
+</html>

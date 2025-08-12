@@ -1,10 +1,10 @@
 {
-  "tee":     { "S": 5, "M": 4, "L": 0, "XL": 2, "2XL": 1 },
-  "vest":    { "S": 3, "M": 0, "L": 2, "XL": 1 },
-  "jumper":  { "S": 1, "M": 2, "L": 2, "XL": 0 },
+  "tee":     { "S": 0, "M": 4, "L": 0, "XL": 2, "2XL": 1 },
+  "vest":    { "S": 0, "M": 0, "L": 2, "XL": 1 },
+  "jumper":  { "S": 0, "M": 2, "L": 2, "XL": 0 },
   "hoodie":  { "S": 0, "M": 0, "L": 0, "XL": 0 },
   "cap":     { "ONESIZE": 10 },
-  "subcap":  { "ONESIZE": 7 },
+  "subcap":  { "ONESIZE": 3 },
   "mug":     { "ONESIZE": 12 },
   "bottle":  { "ONESIZE": 9 },
   "keyring": { "ONESIZE": 25 },
@@ -12,6 +12,6 @@
   "towel":   { "ONESIZE": 14 },
   "mystery": { "ONESIZE": 3 },
 
-  "w_tshirt":{ "S": 6, "M": 6, "L": 6, "XL": 6, "2XL": 6 },
-  "w_vest":  { "S": 5, "M": 5, "L": 5, "XL": 5 }
+  "w_tshirt":{ "S": 0, "M": 6, "L": 6, "XL": 6, "2XL": 0 },
+  "w_vest":  { "S": 0, "M": 5, "L": 5, "XL": 5 }
 }

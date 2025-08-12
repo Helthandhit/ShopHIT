@@ -516,7 +516,15 @@ function renderPayPalButtons(){
   }).render('#paypalButtons');
 }
 
-/* Email: browser-safe flow (mailto + webmail fallback), then show PayPal */
+/* ---- PayPal.me auto-open helper ---- */
+function buildPayPalMeUrl(){
+  const { grand } = computeTotals();
+  const amount = (Math.round(grand*100)/100).toFixed(2); // e.g. "12.50"
+  // If you ever need to pass a note you can add ?country.x=GB&locale.x=en_GB
+  return `https://www.paypal.me/healthandhit/${amount}`;
+}
+
+/* Email: browser-safe flow (mailto + webmail fallback), then auto-open PayPal.me */
 const emailBtn=document.getElementById('emailOrderBtn');
 emailBtn.onclick=async ()=>{
   if(!validateForm(true)) return;
@@ -541,10 +549,21 @@ emailBtn.onclick=async ()=>{
   fall.style.display='block';
   document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
-  // Show PayPal step & buttons
-  document.getElementById('payGate').innerHTML='✔️ Email step ready. <b>Step 2:</b> Click the PayPal button below to pay.';
+  // Update step text
+  const gate = document.getElementById('payGate');
+  gate.innerHTML = '✔️ Email step ready. <b>Step 2:</b> PayPal should have opened in a new tab. If not, use the PayPal button below.';
+
+  // Show PayPal buttons as fallback
   emailBtn.style.display='none';
   renderPayPalButtons();
+
+  // Auto-open PayPal.me with the exact grand total
+  try {
+    const paypalMe = buildPayPalMeUrl();
+    // New tab to avoid popup blockers more reliably (user just interacted)
+    window.open(paypalMe, '_blank', 'noopener');
+  } catch(e){ console.warn('Could not open PayPal.me', e); }
+
   confettiBurst();
 };
 
@@ -573,6 +592,16 @@ function init(){
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && pop.style.display!=='none') closeDiscount(); });
 }
 init();
+
+/* --------- Email link builders --------- */
+function buildEmailLinks({to, subject, body}){
+  const enc = s => encodeURIComponent(s);
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${enc(subject)}&body=${enc(body)}`;
+  const gmail  = `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
+  const outlook= `https://outlook.live.com/mail/0/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  const yahoo  = `https://compose.mail.yahoo.com/?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  return { mailto, gmail, outlook, yahoo };
+}
 </script>
 </body>
 </html>

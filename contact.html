@@ -48,15 +48,11 @@
       <h1>Contact HealthAndHIT</h1>
       <p class="muted">Questions, custom prints, order help — send me a message below. You can attach a picture too.</p>
 
-      <!-- ACTION: This posts to FormSubmit and emails healthandhit@gmail.com -->
       <form action="https://formsubmit.co/healthandhit@gmail.com" method="POST" enctype="multipart/form-data">
-        <!-- FormSubmit options -->
         <input type="hidden" name="_subject" value="New message from HealthAndHIT contact form">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="_captcha" value="false">
-        <!-- After submit, show a simple thank-you page (replace URL if you have one) -->
         <input type="hidden" name="_next" value="https://healthandhit.com/thanks.html">
-        <!-- Honeypot (spam protection) -->
         <input type="text" name="_honey" style="display:none">
 
         <div class="row">
@@ -136,7 +132,6 @@
   </div>
 
 <script>
-  // Mailto fallback: opens the user's email client with prefilled subject & body (attachments can be added manually there)
   const mail = document.getElementById('mailtoFallback');
   mail.addEventListener('click', (e) => {
     e.preventDefault();

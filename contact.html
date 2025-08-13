@@ -48,11 +48,15 @@
       <h1>Contact HealthAndHIT</h1>
       <p class="muted">Questions, custom prints, order help — send me a message below. You can attach a picture too.</p>
 
-      <form action="https://formsubmit.co/healthandhit@gmail.com" method="POST" enctype="multipart/form-data">
+      <!-- Force FormSubmit so attachments are emailed. No mailto fallback. -->
+      <form id="contactForm" action="https://formsubmit.co/healthandhit@gmail.com" method="POST" enctype="multipart/form-data">
+        <!-- FormSubmit options -->
         <input type="hidden" name="_subject" value="New message from HealthAndHIT contact form">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="_captcha" value="false">
+        <!-- After submit, change this to your thank-you page if you have one -->
         <input type="hidden" name="_next" value="https://healthandhit.com/thanks.html">
+        <!-- Honeypot (spam protection) -->
         <input type="text" name="_honey" style="display:none">
 
         <div class="row">
@@ -116,8 +120,7 @@
         </div>
 
         <div class="actions">
-          <button class="primary" type="submit">Send message</button>
-          <a id="mailtoFallback" href="#" class="note" title="If the form is blocked, use email instead.">Or email me via your app</a>
+          <button class="primary" type="submit" id="submitBtn">Send message</button>
         </div>
 
         <div class="footer">
@@ -132,40 +135,12 @@
   </div>
 
 <script>
-  const mail = document.getElementById('mailtoFallback');
-  mail.addEventListener('click', (e) => {
-    e.preventDefault();
-    const name = encodeURIComponent(document.getElementById('name').value || '');
-    const email = encodeURIComponent(document.getElementById('email').value || '');
-    const phone = encodeURIComponent(document.getElementById('phone').value || '');
-    const order = encodeURIComponent(document.getElementById('order').value || '');
-    const addr1 = encodeURIComponent(document.getElementById('address1').value || '');
-    const addr2 = encodeURIComponent(document.getElementById('address2').value || '');
-    const city = encodeURIComponent(document.getElementById('city').value || '');
-    const postcode = encodeURIComponent(document.getElementById('postcode').value || '');
-    const country = encodeURIComponent(document.getElementById('country').value || '');
-    const message = encodeURIComponent(document.getElementById('message').value || '');
-
-    const subject = encodeURIComponent('Contact form — HealthAndHIT');
-    const body = encodeURIComponent(
-`Name: ${decodeURIComponent(name)}
-Email: ${decodeURIComponent(email)}
-Phone: ${decodeURIComponent(phone)}
-Order #: ${decodeURIComponent(order)}
-
-Address:
-${decodeURIComponent(addr1)}
-${decodeURIComponent(addr2)}
-${decodeURIComponent(city)} ${decodeURIComponent(postcode)}
-${decodeURIComponent(country)}
-
-Details:
-${decodeURIComponent(message)}
-
-(You can attach your image before sending.)`
-    );
-
-    window.location.href = `mailto:healthandhit@gmail.com?subject=${subject}&body=${body}`;
+  // Prevent double submissions and give quick UX feedback
+  const form = document.getElementById('contactForm');
+  const btn = document.getElementById('submitBtn');
+  form.addEventListener('submit', () => {
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
   });
 </script>
 </body>

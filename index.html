@@ -804,57 +804,8 @@ function buildEmailLinks({to, subject, body}){
   return { mailto, gmail, outlook, yahoo };
 }
 </script>
-  <!-- View Counter -->
-<div id="viewCounter"
-     style="text-align:center;margin:20px 0;padding:8px 12px;
-            border:1px solid #343542;border-radius:12px;
-            background:#1f2027;color:#fff;font-weight:700;
-            display:inline-block;">
-  👀 Views: <span id="viewCountNum">—</span>
-</div>
-
-<script>
-const NS  = 'healthandhit';
-const KEY = 'shop';
-const COUNTER_URL = `https://api.countapi.xyz`;
-const viewBadge   = document.getElementById('viewCountNum');
-
-const SEEN_KEY = 'hh_view_seen_at';
-const SEEN_HOURS = 12;
-
-function shouldBump(){
-  try{
-    const last = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10);
-    const now  = Date.now();
-    return (now - last) > SEEN_HOURS*60*60*1000;
-  }catch(e){ return true; }
-}
-function markBumped(){
-  try{ localStorage.setItem(SEEN_KEY, String(Date.now())); }catch(e){}
-}
-
-async function getCurrent(){
-  const r = await fetch(`${COUNTER_URL}/get/${NS}/${KEY}`).catch(()=>null);
-  if(r && r.ok){ const data = await r.json(); return data?.value ?? 0; }
-  return 0;
-}
-async function bump(){
-  const r = await fetch(`${COUNTER_URL}/hit/${NS}/${KEY}`).catch(()=>null);
-  if(r && r.ok){ const data = await r.json(); return data?.value ?? 0; }
-  return await getCurrent();
-}
-
-(async ()=>{
-  try{
-    let val;
-    if(shouldBump()){ val = await bump(); markBumped(); }
-    else            { val = await getCurrent(); }
-    viewBadge.textContent = (val ?? 0).toLocaleString();
-  }catch(e){
-    viewBadge.textContent = '—';
-    console.warn('View counter error', e);
-  }
-})();
-</script>
+  <a href="https://shop.healthandhit.com" aria-label="views" style="display:inline-block">
+  <img alt="views" src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=${encodeURIComponent('https://shop.healthandhit.com')}&count_bg=%2323272F&title_bg=%23FF3939&icon=eye.svg&icon_color=%23FFFFFF&title=Views&edge_flat=false">
+  </a>
 </body>
 </html>

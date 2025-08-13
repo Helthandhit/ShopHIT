@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>HealthAndHIT — Shop</title>
+<title>HealthAndHIT — Shop (Inventory Enabled)</title>
 <meta name="color-scheme" content="dark light">
 
 <style>
@@ -29,10 +29,11 @@ header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e2
 
 /* Hero notice */
 .hero{padding:18px 16px 8px}
-.hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:#muted}
+.hero .notice{background:#1f2027;border:1px solid #2c2d36;border-radius:var(--radius);padding:12px 14px;color:var(--muted)}
 
 /* Product grid */
 .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:18px;margin:16px;align-items:stretch}
+.grid .full{grid-column:1 / -1}
 @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
 
@@ -127,7 +128,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 <button class="basket-fab" id="basketFab">🧺 <span class="count" id="basketCount">0</span> <span class="count" id="basketTotal">£0.00</span></button>
 
 <section class="hero wrap">
-  <div class="notice">🔴 <b>Now Open</b> — Add items, then tap the basket to checkout.</div>
+  <div class="notice">🔴 <b>Now Open</b> — Per-size stock is live. Add items, then tap the basket to checkout.</div>
 </section>
 
 <section class="grid" id="productsGrid"></section>
@@ -181,7 +182,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <div><input name="county" placeholder="County/Region"></div>
           <div><input name="postcode" placeholder="Postcode" required></div>
           <div><input name="country" value="United Kingdom" placeholder="Country" required></div>
-          <div class="full"><textarea name="notes" rows="3" placeholder="Order notes (optional)"></textarea></div>
+          <div class="full"><textarea name="notes" rows="3" placeholder="Personalised quotes/prefered colours (optional)"></textarea></div>
         </div>
       </form>
     </div>
@@ -257,7 +258,74 @@ const DELIVERY_LABELS = {
   post:  'Standard post — £' + SHIPPING_FLAT.toFixed(2)
 };
 
-/* Products */
+/* -------- Inspirational quotes (PNG list) -------- */
+const DEFAULT_QUOTE_LIST = [
+  "Strength grows in the moments you think you can’t go on but you do",
+  "The only bad workout is the one you didn’t do",
+  "She believed she could so she did",
+  "Strong women lift each other up",
+  "Progress not perfection",
+  "You are stronger than you think",
+  "Sweat now shine later",
+  "Don’t wish for it work for it",
+  "Be the woman who decided to go for it",
+  "Your only limit is you",
+  "The body achieves what the mind believes",
+  "Success is what comes after you stop making excuses",
+  "Push yourself because no one else is going to do it for you",
+  "What seems impossible today will one day become your warm up",
+  "Strong is the new beautiful",
+  "Every workout is progress",
+  "Dream. Believe. Achieve.",
+  "Don’t stop until you’re proud",
+  "Pain is temporary, pride is forever",
+  "Fall in love with taking care of yourself",
+  "A little progress each day adds up to big results",
+  "Excuses don’t burn calories",
+  "Progress is progress, no matter how small",
+  "Strong women empower women",
+  "Wake up with determination, go to bed with satisfaction",
+  "Your speed doesn’t matter, forward is forward",
+  "Discipline is choosing between what you want now and what you want most",
+  "You don’t get what you wish for, you get what you work for",
+  "The difference between try and triumph is a little umph",
+  "It’s not about being the best. It’s about being better than you were yesterday",
+  "You are your only competition",
+  "Stronger every day",
+  "Rise and grind",
+  "Don’t count the days, make the days count",
+  "Progress over perfection",
+  "The best project you’ll ever work on is you",
+  "Make yourself a priority",
+  "Sweat is magic. Cover yourself in it daily",
+  "Strength doesn’t come from what you can do, it comes from overcoming the things you once thought you couldn’t",
+  "Work hard in silence, let success make the noise",
+  "Doubt kills more dreams than failure ever will",
+  "If it doesn’t challenge you, it won’t change you",
+  "She remembered who she was and the game changed",
+  "Stronger than yesterday",
+  "Champions train, losers complain",
+  "Believe you can and you’re halfway there",
+  "When you feel like quitting, think about why you started",
+  "The only way to finish is to start",
+  "Train like a beast, look like a beauty",
+  "No one ever drowned in sweat",
+  "Dedication, determination, domination",
+  "One workout at a time, one day at a time",
+  "Muscles are earned, not given",
+  "Don’t let anyone dull your sparkle",
+  "Sore today, strong tomorrow",
+  "Willpower knows no obstacles",
+  "Be fearless in pursuit of what sets your soul on fire",
+  "Confidence is silent, insecurities are loud",
+  "Hustle for that muscle",
+  "I’m not strong for a girl, I’m just strong",
+  "Strong mind. Strong body. Strong woman.",
+  "Turn the pain into power",
+  "You don’t have to be extreme, just consistent"
+];
+
+/* Products (women’s items include personalization) */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -270,13 +338,70 @@ const PRODUCTS=[
   {id:'keyring',  name:'HIT Keyring',         price:5.00,                                    img:'keyring.png'},
   {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
   {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
-  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'}
+  {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'},
+
+  /* NEW: Women's Tops (personalisation via quote dropdown +£2.50) */
+  {id:'w_tshirt', name:"Women's T-Shirt",     price:12.00, sizes:['S','M','L','XL','2XL'],  img:'woman_tshirt.png', personalize:true},
+  {id:'w_vest',   name:"Women's Vest",        price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
 ];
 
 /* Helpers */
 const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
+
+/* ------------ INVENTORY (JSON file) ------------ */
+let INVENTORY = {}; // structure: { productId: { SIZE: qty, ... } } or { productId: { ONESIZE: qty } }
+async function loadInventory(){
+  try{
+    const res = await fetch('inventory.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('missing');
+    const data = await res.json();
+    INVENTORY = data || {};
+  }catch(e){
+    console.warn('inventory.json not found, treating as unlimited stock', e);
+    INVENTORY = {}; // unlimited
+  }
+}
+const qtyFor = (pid, size) => {
+  const rec = INVENTORY[pid];
+  if(!rec) return Infinity;
+  if(size) return (rec[size] ?? 0);
+  if('ONESIZE' in rec) return rec['ONESIZE'];
+  return 0;
+};
+const productSoldOut = (pid, sizes) => {
+  if(!sizes || sizes.length===0) return qtyFor(pid,'') <= 0;
+  return sizes.every(sz => qtyFor(pid, sz) <= 0);
+};
+function buildSizeControl(p){
+  if(!p.sizes || p.sizes.length===0){
+    const left = qtyFor(p.id,'');
+    const badge = (left===Infinity) ? '' : `<span class="muted">Stock: ${left}</span>`;
+    return `<input type="hidden" class="size"><span>${badge}</span>`;
+  }
+  const opts = p.sizes.map(sz=>{
+    const left = qtyFor(p.id, sz);
+    const label = `${sz} ${left===Infinity?'':'(' + left + ')'}`;
+    const disabled = (left<=0) ? 'disabled' : '';
+    return `<option value="${sz}" ${disabled}>${label}${left<=0?' — Sold out':''}</option>`;
+  }).join('');
+  return `<select class="size"><option value="">Size</option>${opts}</select>`;
+}
+
+/* ----- Quote dropdown helpers ----- */
+function buildQuoteSelectHTML() {
+  const opts = ['<option value="">Personalised Quote (add at checkout notes)( +£2.50 )</option>']
+    .concat(DEFAULT_QUOTE_LIST.map(q => `<option value="${q.replace(/"/g,'&quot;')}">${q.length>70?q.slice(0,67)+'…':q}</option>`))
+    .join('');
+  return `<select class="quote-select">${opts}</select>`;
+}
+function quoteKeyPart(q) {
+  return q ? 'Q:' + encodeURIComponent(q).slice(0,140) : 'Q:-';
+}
+function lineKey(l){
+  return l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-')+'|'+quoteKeyPart(l.quote||'');
+}
 
 /* Toast */
 let toastTimer=null;
@@ -294,17 +419,32 @@ function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); upda
 /* Add/Remove */
 let lastAddedKey=null;
 function addToCart(line){
-  const key=line.id+'|'+(line.size||'');
-  const existing=cart.find(l=>(l.id+'|'+(l.size||''))===key);
+  const key=lineKey(line);
+  // enforce stock before adding
+  const left = qtyFor(line.id, line.size||'');
+  if(!(left===Infinity) && line.qty>left){
+    alert(`Only ${left} left for that selection.`);
+    return;
+  }
+  const existing=cart.find(l=> lineKey(l)===key);
   const wasEmpty = cart.length===0;
-  if(existing){ existing.qty+=line.qty; lastAddedKey=key; } else { cart.push(line); lastAddedKey=key; }
+  if(existing){
+    const newQty = existing.qty + line.qty;
+    const cap = (left===Infinity)?newQty:Math.min(newQty, left);
+    existing.qty = cap;
+  } else {
+    cart.push(line);
+  }
   if(line.size){ localStorage.setItem('hh_size_'+line.id, line.size); }
   saveCart(); renderCart();
-  showToast(`Added ${line.name}${line.size?' '+line.size:''} — Undo`, ()=>{ removeFromCart(lastAddedKey); lastAddedKey=null; showToast('Removed'); });
-  bumpFab();
+  showToast(`Added ${line.name}${line.size?' '+line.size:''}${line.personalize?' + personalised':''} — Undo`, ()=>{ removeFromCart(key); lastAddedKey=null; showToast('Removed'); });
+  lastAddedKey=key; bumpFab();
   if(OPEN_DRAWER_ON_ADD && wasEmpty) openDrawer();
 }
-function removeFromCart(key){ cart=cart.filter(l=>(l.id+'|'+(l.size||''))!==key); saveCart(); renderCart(); }
+function removeFromCart(key){
+  cart=cart.filter(l=> lineKey(l)!==key);
+  saveCart(); renderCart();
+}
 
 /* Totals */
 function computeTotals(){
@@ -313,10 +453,7 @@ function computeTotals(){
   let shipping = 0;
   if(subtotal>0){
     if(selectedDeliveryMethod==='local') shipping = 0;
-    else {
-      // Standard post: flat, but free if subtotal over threshold
-      shipping = (subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
-    }
+    else shipping = (subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
   }
   // Discounts
   let discountValue=0;
@@ -343,6 +480,7 @@ function stepperHTML(initial=1){
 function renderProducts(){
   grid.innerHTML='';
   PRODUCTS.forEach(p=>{
+    const soldOut = productSoldOut(p.id, p.sizes);
     const card=document.createElement('article');
     card.className='card';
     card.innerHTML=`
@@ -351,19 +489,22 @@ function renderProducts(){
       </div>
       <div class="body">
         <div>
-          <h3 class="title">${p.name}</h3>
+          <h3 class="title">${p.name} ${soldOut?'<span class="muted">— Sold out</span>':''}</h3>
           <div class="muted">${p.sizes?'Clothing':'Accessory'}</div>
           <div class="row"><span class="price">${currency(p.price)}</span></div>
+          ${p.personalize ? `<div class="row">${buildQuoteSelectHTML()}</div>` : ''}
           <div class="row">
-            ${p.sizes ? `<select class="size"><option value="">Size</option>${p.sizes.map(s=>`<option>${s}</option>`).join('')}</select>` : `<input type="hidden" class="size">`}
+            ${buildSizeControl(p)}
             ${stepperHTML(1)}
           </div>
         </div>
-        <div class="row"><button class="btn btn-accent btn-block add">Add to Basket</button></div>
+        <div class="row"><button class="btn btn-accent btn-block add" ${soldOut?'disabled':''}>${soldOut?'Sold out':'Add to Basket'}</button></div>
       </div>`;
+    // restore saved size if available and in stock
     if(p.sizes){
+      const sel=card.querySelector('.size');
       const saved=localStorage.getItem('hh_size_'+p.id);
-      if(saved){ const sel=card.querySelector('.size'); if([...sel.options].some(o=>o.value===saved)) sel.value=saved; }
+      if(saved && [...sel.options].some(o=>o.value===saved && !o.disabled)) sel.value=saved;
     }
     let adding=false;
     card.querySelector('.add').onclick=()=>{
@@ -373,7 +514,14 @@ function renderProducts(){
       if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); adding=false; return; }
       sizeEl.classList.remove('error');
       const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
-      addToCart({id:p.id,name:p.name,price:p.price,size,qty});
+      const left = qtyFor(p.id, p.sizes?size:'');
+      if(!(left===Infinity) && qty>left){ alert(`Only ${left} left for that size.`); adding=false; return; }
+
+      const selectedQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
+      const personalize = !!selectedQuote;
+      const unitPrice = p.price + (personalize ? 2.50 : 0);
+
+      addToCart({id:p.id,name:p.name,price:unitPrice,size,qty,personalize,quote:selectedQuote});
       setTimeout(()=>adding=false,300);
     };
     grid.appendChild(card);
@@ -385,14 +533,17 @@ function renderCart(){
   const cartItems=document.getElementById('cartItems');
   cartItems.innerHTML=cart.length?'' : '<div class="note">Your basket is empty.</div>';
   cart.forEach(l=>{
-    const key=l.id+'|'+(l.size||'');
+    const key=lineKey(l);
     const row=document.createElement('div');
     row.className='cart-line';
     row.dataset.key=key;
+    const left = qtyFor(l.id, l.size||'');
+    const capNote = (left!==Infinity) ? `<span class="muted"> (Max ${left})</span>` : '';
     row.innerHTML=`
       <div>
-        <strong>${l.name}${l.size?` — ${l.size}`:''}</strong>
+        <strong>${l.name}${l.size?` — ${l.size}`:''}${l.personalize?' + Personalised':''}</strong> ${capNote}
         <div class="meta">${currency(l.price)} ×&nbsp; ${stepperHTML(l.qty)}</div>
+        ${l.quote ? `<div class="meta"><em>Quote:</em> “${l.quote.replace(/</g,'&lt;')}”</div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div style="min-width:90px;text-align:right;font-weight:800">${currency(l.price*l.qty)}</div>
@@ -412,30 +563,43 @@ function renderCart(){
 
   updateFab();
 
-  // If PayPal buttons are visible, keep them synced with the new total
+  // Keep PayPal buttons synced with the new total
   if (document.getElementById('paypalButtons').style.display === 'block') {
     renderPayPalButtons();
   }
 }
 
-/* Quantity stepper delegation */
+/* Quantity stepper delegation (respect stock caps) */
 document.addEventListener('click',(e)=>{
   const btn=e.target.closest('.stepper .inc, .stepper .dec'); if(!btn) return;
   const wrap=btn.closest('.stepper'); const input=wrap.querySelector('input.qty');
   let val=Math.max(1, parseInt(input.value||'1',10));
   if(btn.classList.contains('inc')) val++; else val=Math.max(1,val-1);
-  input.value=String(val);
   const row=btn.closest('.cart-line');
-  if(row){ const key=row.dataset.key; const line=cart.find(l=>(l.id+'|'+(l.size||''))===key); if(line){ line.qty=val; saveCart(); renderCart(); } }
+  if(row){
+    const key=row.dataset.key;
+    const line=cart.find(l=> lineKey(l)===key);
+    if(line){
+      const left = qtyFor(line.id, line.size||'');
+      if(!(left===Infinity)) val = Math.min(val, left);
+      line.qty=val; input.value=String(val); saveCart(); renderCart();
+    }
+  } else {
+    input.value=String(val);
+  }
 },{passive:false});
 
 document.addEventListener('input',(e)=>{
   const input=e.target;
   if(!(input.matches && input.matches('.cart-line input.qty'))) return;
   const row=input.closest('.cart-line'); const key=row?.dataset?.key;
-  const line=cart.find(l=>(l.id+'|'+(l.size||''))===key);
-  const val=Math.max(1, parseInt(input.value||'1',10));
-  if(line){ line.qty=val; saveCart(); renderCart(); }
+  const line=cart.find(l=> lineKey(l)===key);
+  let val=Math.max(1, parseInt(input.value||'1',10));
+  if(line){
+    const left = qtyFor(line.id, line.size||'');
+    if(!(left===Infinity)) val = Math.min(val, left);
+    line.qty=val; input.value=String(val); saveCart(); renderCart();
+  }
 });
 
 /* Drawer UX */
@@ -484,7 +648,9 @@ document.getElementById('deliverySeg').addEventListener('click',(e)=>{
 function getDeliveryLabel(){ return DELIVERY_LABELS[selectedDeliveryMethod] || 'Local pickup/delivery — FREE'; }
 function buildOrderText(){
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
-  const lines=cart.map(l=>`${l.name}${l.size?` (${l.size})`:''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
+  const lines=cart.map(l =>
+    `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}${l.quote?`\n   • Quote: "${l.quote}"`:''}`
+  ).join('\n');
   const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
   const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
   const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
@@ -583,7 +749,6 @@ emailBtn.onclick=async ()=>{
   document.getElementById('gmailLink').href=links.gmail;
   document.getElementById('outlookLink').href=links.outlook;
   document.getElementById('yahooLink').href=links.yahoo;
-  fall.style.display='block';
   document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
   // Update gate text
@@ -613,7 +778,8 @@ function confettiBurst(){
 
 /* Popup controls */
 function closeDiscount(){ const el=document.getElementById('discountPopup'); el.style.display='none'; sessionStorage.setItem('welcomeShown','true'); }
-function init(){
+async function init(){
+  await loadInventory();          // load inventory.json first
   renderProducts(); renderCart(); updateFab(); restoreForm();
 
   // Dev override: force show popup with ?welcome=1

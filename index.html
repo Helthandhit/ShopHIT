@@ -14,6 +14,16 @@
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial}
 a{color:inherit;text-decoration:none}
 
+/* >>> SCROLL LOCK PATCH >>> */
+html { overscroll-behavior: none; }
+body.scroll-lock{
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+  top: var(--scroll-lock-top, 0px);
+}
+/* <<< SCROLL LOCK PATCH <<< */
+
 /* Header */
 header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#1d1e23 0%,#1a1b20 100%);border-bottom:1px solid #2f3038}
 .wrap{max-width:1160px;margin:0 auto;padding:16px}
@@ -66,10 +76,30 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .drawer.open{display:block}
 .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45)}
 .panel{position:absolute; right:0; top:0; bottom:0; width:min(520px,100%); background:#1b1c22; border-left:1px solid #2b2c33;
-  display:flex; flex-direction:column; height:100svh; max-height:100svh;}
+  display:flex; flex-direction:column; height:100svh; max-height:100svh; overscroll-behavior: contain; }
 .drawer-content{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 16px;}
 .panel header .wrap{padding:14px 16px}
 .section-title{padding:12px 0 0 0; font-weight:700}
+
+/* >>> SCROLL HINT PATCH (CSS) >>> */
+.scroll-hint {
+  position: sticky;
+  top: 0;
+  text-align:center;
+  font-size:1.35rem;
+  line-height:1;
+  color:var(--muted);
+  opacity:.7;
+  animation:bounceArrow 1.2s infinite;
+  user-select:none;
+  padding-top:6px;
+  background:linear-gradient(180deg, #1b1c22 0%, rgba(27,28,34,0) 90%);
+}
+@keyframes bounceArrow {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+/* <<< SCROLL HINT PATCH <<< */
 
 /* Lines */
 .cart-items{display:flex;flex-direction:column;gap:12px; padding-top:10px}
@@ -95,7 +125,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
   padding:12px 16px; display:flex; flex-direction:column; gap:10px;}
 .gate{border:1px dashed #3a3b47; padding:10px; border-radius:10px; color:#cfcfe5; font-size:.95rem;}
 
-/* Acknowledgement */
+/* Acknowledgement (now in scrollable area) */
 .ack{display:flex;gap:10px; align-items:flex-start; background:#1f2027; border:1px solid #2c2d36; padding:10px; border-radius:10px;}
 .ack input{margin-top:3px}
 .ack small{color:#cfcfe5; line-height:1.35}
@@ -145,6 +175,9 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
     </header>
 
     <div class="drawer-content" id="drawerContent">
+      <!-- ↓ arrow hint (sticky at top of scrollable area) -->
+      <div id="scrollHint" class="scroll-hint" aria-hidden="true">⌄</div>
+
       <div class="section-title">Items</div>
       <div class="cart-items" id="cartItems"></div>
 
@@ -185,37 +218,40 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <div class="full"><textarea name="notes" rows="3" placeholder="Personalised quotes/prefered colours (optional)"></textarea></div>
         </div>
       </form>
-    </div>
 
-    <div class="checkout-actions">
-      <div class="gate" id="payGate">
-        <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>The PayPal button will appear afterwards.
-      </div>
-
-      <!-- Mandatory acknowledgement -->
-      <label class="ack" for="orderAcknowledge">
+      <!-- >>> CHECKBOX MOVED TO BOTTOM OF SCROLL AREA >>> -->
+      <label class="ack" for="orderAcknowledge" style="margin-top:12px;">
         <input type="checkbox" id="orderAcknowledge" />
         <small>
-          I understand this is a home-run startup. Some items may be out of stock. If an item isn’t available, a substitute or refund will be offered. Minor errors are possible while I’m building this up — I’ll do my best to provide the best service.
+          I understand this is a home-run startup. Some items may be out of stock. If an item isn’t available, a substitute or refund will be offered. Minor errors are possible while I’m building this up — I’ll do my best to provide the best service. 
+          I also accept the <a href="terms.html" target="_blank">T&Cs</a>.
         </small>
       </label>
+      <!-- <<< CHECKBOX AT BOTTOM OF SCROLL AREA <<< -->
 
-      <button class="btn btn-accent btn-block" id="emailOrderBtn" disabled>Send Order by Email</button>
-
-      <!-- Webmail fallback -->
-      <div id="emailFallback" class="gate" style="display:none">
-        Email didn’t open? Choose one:
-        <div class="row" style="margin-top:8px; gap:8px; flex-wrap:wrap">
-          <a id="gmailLink"    class="btn btn-accent" target="_blank" rel="noopener">Gmail</a>
-          <a id="outlookLink"  class="btn btn-accent" target="_blank" rel="noopener">Outlook.com</a>
-          <a id="yahooLink"    class="btn btn-accent" target="_blank" rel="noopener">Yahoo Mail</a>
-          <button id="copyOrderBtn" class="btn">Copy order text</button>
+      <!-- Sticky action footer -->
+      <div class="checkout-actions">
+        <div class="gate" id="payGate">
+          <b>Step 1:</b> Press <em>Send Order by Email</em> below to confirm your details.<br/>The PayPal button will appear afterwards.
         </div>
-        <div class="muted" style="margin-top:6px">The order text is copied — just paste it in your email.</div>
-      </div>
 
-      <!-- PayPal Smart Buttons render target -->
-      <div id="paypalButtons" style="display:none; padding-top:8px;"></div>
+        <button class="btn btn-accent btn-block" id="emailOrderBtn" disabled>Send Order by Email</button>
+
+        <!-- Webmail fallback -->
+        <div id="emailFallback" class="gate" style="display:none">
+          Email didn’t open? Choose one:
+          <div class="row" style="margin-top:8px; gap:8px; flex-wrap:wrap">
+            <a id="gmailLink"    class="btn btn-accent" target="_blank" rel="noopener">Gmail</a>
+            <a id="outlookLink"  class="btn btn-accent" target="_blank" rel="noopener">Outlook.com</a>
+            <a id="yahooLink"    class="btn btn-accent" target="_blank" rel="noopener">Yahoo Mail</a>
+            <button id="copyOrderBtn" class="btn" type="button">Copy order text</button>
+          </div>
+          <div class="muted" style="margin-top:6px">The order text is copied — just paste it in your email.</div>
+        </div>
+
+        <!-- PayPal Smart Buttons render target -->
+        <div id="paypalButtons" style="display:none; padding-top:8px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -325,7 +361,7 @@ const DEFAULT_QUOTE_LIST = [
   "You don’t have to be extreme, just consistent"
 ];
 
-/* Products (women’s items include personalization) */
+/* Products */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -339,8 +375,6 @@ const PRODUCTS=[
   {id:'gymbag',   name:'HIT Gym Bag',         price:12.00,                                   img:'gymbag.png'},
   {id:'towel',    name:'HIT Quick Dry Towel', price:10.00,                                   img:'towel.jpg'},
   {id:'mystery',  name:'Mystery Bundle',      price:20.00,                                   img:'mystery.png'},
-
-  /* NEW: Women's Tops (personalisation via quote dropdown +£2.50) */
   {id:'w_tshirt', name:"Women's T-Shirt",     price:12.00, sizes:['S','M','L','XL','2XL'],  img:'woman_tshirt.png', personalize:true},
   {id:'w_vest',   name:"Women's Vest",        price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
 ];
@@ -351,7 +385,7 @@ const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 
 /* ------------ INVENTORY (JSON file) ------------ */
-let INVENTORY = {}; // structure: { productId: { SIZE: qty, ... } } or { productId: { ONESIZE: qty } }
+let INVENTORY = {};
 async function loadInventory(){
   try{
     const res = await fetch('inventory.json', {cache:'no-store'});
@@ -360,7 +394,7 @@ async function loadInventory(){
     INVENTORY = data || {};
   }catch(e){
     console.warn('inventory.json not found, treating as unlimited stock', e);
-    INVENTORY = {}; // unlimited
+    INVENTORY = {};
   }
 }
 const qtyFor = (pid, size) => {
@@ -420,7 +454,6 @@ function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); upda
 let lastAddedKey=null;
 function addToCart(line){
   const key=lineKey(line);
-  // enforce stock before adding
   const left = qtyFor(line.id, line.size||'');
   if(!(left===Infinity) && line.qty>left){
     alert(`Only ${left} left for that selection.`);
@@ -449,13 +482,11 @@ function removeFromCart(key){
 /* Totals */
 function computeTotals(){
   const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
-  // Base shipping from selected delivery method
   let shipping = 0;
   if(subtotal>0){
     if(selectedDeliveryMethod==='local') shipping = 0;
     else shipping = (subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT);
   }
-  // Discounts
   let discountValue=0;
   if(appliedDiscount){
     if(appliedDiscount.type==='percent') discountValue=subtotal*(appliedDiscount.value/100);
@@ -500,7 +531,6 @@ function renderProducts(){
         </div>
         <div class="row"><button class="btn btn-accent btn-block add" ${soldOut?'disabled':''}>${soldOut?'Sold out':'Add to Basket'}</button></div>
       </div>`;
-    // restore saved size if available and in stock
     if(p.sizes){
       const sel=card.querySelector('.size');
       const saved=localStorage.getItem('hh_size_'+p.id);
@@ -563,13 +593,15 @@ function renderCart(){
 
   updateFab();
 
-  // Keep PayPal buttons synced with the new total
   if (document.getElementById('paypalButtons').style.display === 'block') {
     renderPayPalButtons();
   }
+
+  // refresh scroll hint visibility after cart render
+  queueMicrotask(updateScrollHint);
 }
 
-/* Quantity stepper delegation (respect stock caps) */
+/* Quantity stepper delegation */
 document.addEventListener('click',(e)=>{
   const btn=e.target.closest('.stepper .inc, .stepper .dec'); if(!btn) return;
   const wrap=btn.closest('.stepper'); const input=wrap.querySelector('input.qty');
@@ -602,12 +634,62 @@ document.addEventListener('input',(e)=>{
   }
 });
 
+/* >>> SCROLL LOCK PATCH >>> */
+let __scrollY = 0;
+function lockBodyScroll(){
+  __scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.setProperty('--scroll-lock-top', `-${__scrollY}px`);
+  document.body.classList.add('scroll-lock');
+}
+function unlockBodyScroll(){
+  document.body.classList.remove('scroll-lock');
+  document.body.style.removeProperty('--scroll-lock-top');
+  window.scrollTo(0, __scrollY || 0);
+}
+/* <<< SCROLL LOCK PATCH <<< */
+
+/* >>> SCROLL HINT PATCH (JS) >>> */
+const drawerContent = document.getElementById('drawerContent');
+const scrollHint = document.getElementById('scrollHint');
+
+function updateScrollHint(){
+  // show only if there's overflow and we're at the very top
+  const hasOverflow = drawerContent.scrollHeight > drawerContent.clientHeight + 8;
+  if(!hasOverflow){
+    scrollHint.style.display = 'none';
+    return;
+  }
+  scrollHint.style.display = (drawerContent.scrollTop <= 20) ? 'block' : 'none';
+}
+drawerContent.addEventListener('scroll', updateScrollHint);
+window.addEventListener('resize', updateScrollHint);
+/* <<< SCROLL HINT PATCH <<< */
+
 /* Drawer UX */
-function openDrawer(){ const d=document.getElementById('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); d.querySelector('.panel').focus?.(); }
-function closeDrawer(){ const d=document.getElementById('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.getElementById('basketFab').focus?.(); }
+function openDrawer(){
+  const d=document.getElementById('drawer');
+  d.classList.add('open'); d.setAttribute('aria-hidden','false'); d.querySelector('.panel').focus?.();
+  lockBodyScroll();
+  // reset scroll & hint each open
+  drawerContent.scrollTop = 0;
+  updateScrollHint();
+}
+function closeDrawer(){
+  const d=document.getElementById('drawer');
+  d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.getElementById('basketFab').focus?.();
+  unlockBodyScroll();
+}
 document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
+
+/* prevent scroll-through on backdrop */
+const __backdrop = document.getElementById('drawerBackdrop');
+['wheel','touchmove'].forEach(evt=>{
+  __backdrop.addEventListener(evt, e=>{ e.preventDefault(); }, {passive:false});
+});
+document.querySelector('.panel').addEventListener('wheel', e=>{ e.stopPropagation(); }, {passive:true});
+
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && document.getElementById('drawer').classList.contains('open')) closeDrawer(); });
 
 /* Prevent wheel changing number inputs */
@@ -623,7 +705,6 @@ function validateForm(showErrors=true){
   for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ form.querySelector(`[name="${k}"]`)?.classList.add('error'); } } }
   if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]')?.classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
-  // Mandatory acknowledgement
   const ack = document.getElementById('orderAcknowledge');
   if(!ack.checked){ ok=false; if(showErrors){ alert('Please tick the acknowledgement to continue.'); } }
   return ok;
@@ -644,9 +725,54 @@ document.getElementById('deliverySeg').addEventListener('click',(e)=>{
   renderCart();
 });
 
+/* ---------------- ORDER ID HELPERS ---------------- */
+let currentOrderId = localStorage.getItem('hh_current_order_id') || null;
+
+function generateOrderId(){
+  // Format: HIT-YYMMDD-SSRR (date + daily sequence + 2-char random)
+  const now = new Date();
+  const y = String(now.getFullYear()).slice(-2);
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  const dayKey = `hh_order_seq_${y}${m}${d}`;
+  const seq = (Number(localStorage.getItem(dayKey)) || 0) + 1;
+  localStorage.setItem(dayKey, String(seq));
+  const rand = Math.random().toString(36).slice(2,4).toUpperCase();
+  return `HIT-${y}${m}${d}-${String(seq).padStart(2,'0')}${rand}`;
+}
+
+function ensureOrderId(){
+  if(!currentOrderId){
+    currentOrderId = generateOrderId();
+    localStorage.setItem('hh_current_order_id', currentOrderId);
+  }
+  return currentOrderId;
+}
+
+function clearOrderId(){
+  currentOrderId = null;
+  localStorage.removeItem('hh_current_order_id');
+}
+
+/* Optional: snapshot pending order */
+function snapshotPendingOrder(){
+  const id = ensureOrderId();
+  const {subtotal,shipping,discountValue,grand}=computeTotals();
+  const customer = getFormData();
+  const payload = {
+    id, when: new Date().toISOString(),
+    cart: [...cart],
+    totals: {subtotal, shipping, discountValue, grand},
+    deliveryMethod: selectedDeliveryMethod,
+    customer
+  };
+  localStorage.setItem(`hh_pending_${id}`, JSON.stringify(payload));
+}
+
 /* Order summary builder */
 function getDeliveryLabel(){ return DELIVERY_LABELS[selectedDeliveryMethod] || 'Local pickup/delivery — FREE'; }
 function buildOrderText(){
+  const id = ensureOrderId();
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
   const lines=cart.map(l =>
     `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}${l.quote?`\n   • Quote: "${l.quote}"`:''}`
@@ -655,6 +781,7 @@ function buildOrderText(){
   const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
   const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
   return `ORDER SUMMARY — HealthAndHIT
+Order ID: ${id}
 ----------------------------
 ${lines}
 ----------------------------
@@ -699,19 +826,28 @@ function renderPayPalButtons(){
   paypal.Buttons({
     style: { layout:'horizontal', shape:'pill', label:'pay' },
     createOrder: (data, actions) => {
+      ensureOrderId();
       const { grand } = computeTotals();
       const value = (Math.round(grand*100)/100).toFixed(2);
       return actions.order.create({
         purchase_units: [{
           amount: { currency_code: 'GBP', value },
-          description: 'HealthAndHIT order'
+          description: `HealthAndHIT — Order ${currentOrderId}`
         }]
       });
     },
     onApprove: (data, actions) => actions.order.capture().then(details => {
       confettiBurst();
-      showToast(`Thanks ${details?.payer?.name?.given_name || ''}! Payment received.`);
+      showToast(`Thanks ${details?.payer?.name?.given_name || ''}! Payment received. (${currentOrderId})`);
+      // mark snapshot as paid (optional)
+      try{
+        const key = `hh_pending_${currentOrderId}`;
+        const snap = JSON.parse(localStorage.getItem(key) || '{}');
+        snap.paid = true; snap.paypal = { id: details?.id || data?.orderID };
+        localStorage.setItem(key, JSON.stringify(snap));
+      }catch(e){}
       cart=[]; saveCart(); renderCart();
+      clearOrderId();
       alert('Payment complete. We’ll confirm your order by email shortly.');
     }),
     onError: (err) => { console.error(err); alert('PayPal error — please try again.'); }
@@ -725,7 +861,7 @@ function buildPayPalMeUrl(){
   return `https://www.paypal.me/healthandhit/${amount}`;
 }
 
-/* Email flow (requires acknowledgement) */
+/* Email flow */
 const emailBtn=document.getElementById('emailOrderBtn');
 const ackBox=document.getElementById('orderAcknowledge');
 ackBox.addEventListener('change', ()=>{ emailBtn.disabled = !ackBox.checked; });
@@ -733,33 +869,31 @@ ackBox.addEventListener('change', ()=>{ emailBtn.disabled = !ackBox.checked; });
 emailBtn.onclick=async ()=>{
   if(!validateForm(true)) return;
 
+  ensureOrderId();
+  snapshotPendingOrder();
+
   const c=getFormData();
   const text=buildOrderText();
 
   try { await navigator.clipboard.writeText(text); showToast('Order copied to clipboard'); } catch(e){}
 
-  const subject=`New Order — ${c.firstName} ${c.lastName}`;
+  const subject=`Order ${currentOrderId} — ${c.firstName} ${c.lastName}`;
   const links=buildEmailLinks({subject, body:text, to:MERCHANT_EMAIL});
 
-  // Attempt default mail client
   window.location.href=links.mailto;
 
-  // Webmail fallback links
-  const fall=document.getElementById('emailFallback');
   document.getElementById('gmailLink').href=links.gmail;
   document.getElementById('outlookLink').href=links.outlook;
   document.getElementById('yahooLink').href=links.yahoo;
   document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
-  // Update gate text
   const gate = document.getElementById('payGate');
-  gate.innerHTML = '✔️ Email step ready. <b>Step 2:</b> PayPal should have opened in a new tab. If not, use the PayPal button below.';
+  gate.innerHTML = '✔️ Email step ready. <b>Step 2:</b> PayPal should have opened in a new tab. If not, use the PayPal button below.'
+                   + `<br><b>Order ID:</b> ${currentOrderId}`;
 
-  // Show PayPal buttons as fallback
   emailBtn.style.display='none';
   renderPayPalButtons();
 
-  // Auto-open PayPal.me with exact grand total
   try { window.open(buildPayPalMeUrl(), '_blank', 'noopener'); } catch(e){ console.warn('Could not open PayPal.me', e); }
 
   confettiBurst();
@@ -779,10 +913,9 @@ function confettiBurst(){
 /* Popup controls */
 function closeDiscount(){ const el=document.getElementById('discountPopup'); el.style.display='none'; sessionStorage.setItem('welcomeShown','true'); }
 async function init(){
-  await loadInventory();          // load inventory.json first
+  await loadInventory();
   renderProducts(); renderCart(); updateFab(); restoreForm();
 
-  // Dev override: force show popup with ?welcome=1
   const __qs=new URLSearchParams(location.search);
   if(__qs.get('welcome')==='1') sessionStorage.removeItem('welcomeShown');
 
@@ -791,6 +924,9 @@ async function init(){
   pop.addEventListener('click',(e)=>{ if(e.target.id==='discountPopup') closeDiscount(); });
   document.getElementById('discountCloseBtn').addEventListener('click', closeDiscount);
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && pop.style.display!=='none') closeDiscount(); });
+
+  // initial state for scroll hint
+  updateScrollHint();
 }
 init();
 

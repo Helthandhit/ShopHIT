@@ -391,7 +391,16 @@ function buildSizeControl(p){
 }
 
 /* Quote helpers */
-function buildQuoteSelectHTML(){ const opts=['<option value="">Personalised Quote (add at checkout notes)( +£2.50 )</option>'].concat(DEFAULT_QUOTE_LIST.map(q=>`<option value="${q.replace(/"/g,'&quot;')}">${q.length>70?q.slice(0,67)+'…':q}</option>`)).join(''); return `<select class="quote-select">${opts}</select>`; }
+function buildQuoteSelectHTML(){
+  const opts = [
+    '<option value="">Select a quote (optional)</option>',
+    '<option value="__PERS__">Personalised (add at checkout notes) — +£2.50</option>',
+    ...DEFAULT_QUOTE_LIST.map(q =>
+      `<option value="${q.replace(/"/g,'&quot;')}">${q.length>70 ? q.slice(0,67)+'…' : q}</option>`
+    )
+  ].join('');
+  return `<select class="quote-select">${opts}</select>`;
+}
 function quoteKeyPart(q){ return q ? 'Q:' + encodeURIComponent(q).slice(0,140) : 'Q:-'; }
 function lineKey(l){ return l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-')+'|'+quoteKeyPart(l.quote||''); }
 
@@ -469,9 +478,21 @@ function renderProducts(){
       sizeEl.classList.remove('error');
       const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
       const left = qtyFor(p.id, p.sizes?size:''); if(!(left===Infinity) && qty>left){ alert(`Only ${left} left for that size.`); adding=false; return; }
-      const selectedQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
-      const personalize = !!selectedQuote; const unitPrice = p.price + (personalize ? 2.50 : 0);
-      addToCart({id:p.id,name:p.name,price:unitPrice,size,qty,personalize,quote:selectedQuote});
+     const rawQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
+const isPersonalised = rawQuote === '__PERS__';          // only this adds £2.50
+const quoteText = isPersonalised ? '' : rawQuote;        // presets free; no text needed for personalised
+const unitPrice = p.price + (isPersonalised ? 2.50 : 0);
+
+addToCart({
+  id: p.id,
+  name: p.name,
+  price: unitPrice,
+  size,
+  qty,
+  personalize: isPersonalised,
+  quote: quoteText
+});
+
       setTimeout(()=>adding=false,300);
     };
     grid.appendChild(card);

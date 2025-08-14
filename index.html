@@ -112,16 +112,6 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .ack input{margin-top:3px}
 .ack small{color:#cfcfe5; line-height:1.35}
 
-/* Ack highlight + shake */
-.ack.error{ border-color: var(--bad); box-shadow: 0 0 0 3px rgba(255,77,77,.25); }
-@keyframes wiggle{
-  10%,90%{transform:translateX(-1px)}
-  20%,80%{transform:translateX(2px)}
-  30%,50%,70%{transform:translateX(-4px)}
-  40%,60%{transform:translateX(4px)}
-}
-.ack.shake{ animation: wiggle .45s ease; }
-
 /* Popup + toast */
 #discountPopup{position: fixed; inset:0; background: rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:999;}
 #discountPopup .box{background: var(--card); padding: 20px; border-radius: var(--radius); max-width: 320px; text-align:center; box-shadow: var(--shadow);}
@@ -208,7 +198,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
         </div>
       </form>
 
-      <label class="ack" for="orderAcknowledge" id="ackWrap" style="margin-top:12px;">
+      <label class="ack" for="orderAcknowledge" style="margin-top:12px;">
         <input type="checkbox" id="orderAcknowledge" />
         <small>
           I understand this is a home-run startup. Some items may be out of stock. If an item isn’t available, a substitute or refund will be offered. Minor errors are possible while I’m building this up — I’ll do my best to provide the best service.
@@ -221,8 +211,7 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <b>Step 1:</b> Press <em>Send Order by Email</em> to submit details. <b>Step 2:</b> Pay using the PayPal button that appears below.
         </div>
 
-        <!-- Always enabled. Validation runs on click to show shake/highlight -->
-        <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
+        <button class="btn btn-accent btn-block" id="emailOrderBtn" disabled>Send Order by Email</button>
 
         <div id="emailFallback" class="gate" style="display:none">
           Email didn’t open? Choose one:
@@ -276,25 +265,74 @@ const DELIVERY_LABELS = {
   post:  'Standard post — £' + SHIPPING_FLAT.toFixed(2)
 };
 
-/* Helpers */
-const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
+/* Quotes */
+const DEFAULT_QUOTE_LIST = [
+  "Strength grows in the moments you think you can’t go on but you do",
+  "The only bad workout is the one you didn’t do",
+  "She believed she could so she did",
+  "Strong women lift each other up",
+  "Progress not perfection",
+  "You are stronger than you think",
+  "Sweat now shine later",
+  "Don’t wish for it work for it",
+  "Be the woman who decided to go for it",
+  "Your only limit is you",
+  "The body achieves what the mind believes",
+  "Success is what comes after you stop making excuses",
+  "Push yourself because no one else is going to do it for you",
+  "What seems impossible today will one day become your warm up",
+  "Strong is the new beautiful",
+  "Every workout is progress",
+  "Dream. Believe. Achieve.",
+  "Don’t stop until you’re proud",
+  "Pain is temporary, pride is forever",
+  "Fall in love with taking care of yourself",
+  "A little progress each day adds up to big results",
+  "Excuses don’t burn calories",
+  "Progress is progress, no matter how small",
+  "Strong women empower women",
+  "Wake up with determination, go to bed with satisfaction",
+  "Your speed doesn’t matter, forward is forward",
+  "Discipline is choosing between what you want now and what you want most",
+  "You don’t get what you wish for, you get what you work for",
+  "The difference between try and triumph is a little umph",
+  "It’s not about being the best. It’s about being better than you were yesterday",
+  "You are your only competition",
+  "Stronger every day",
+  "Rise and grind",
+  "Don’t count the days, make the days count",
+  "Progress over perfection",
+  "The best project you’ll ever work on is you",
+  "Make yourself a priority",
+  "Sweat is magic. Cover yourself in it daily",
+  "Strength doesn’t come from what you can do, it comes from overcoming the things you once thought you couldn’t",
+  "Work hard in silence, let success make the noise",
+  "Doubt kills more dreams than failure ever will",
+  "If it doesn’t challenge you, it won’t change you",
+  "She remembered who she was and the game changed",
+  "Stronger than yesterday",
+  "Champions train, losers complain",
+  "Believe you can and you’re halfway there",
+  "When you feel like quitting, think about why you started",
+  "The only way to finish is to start",
+  "Train like a beast, look like a beauty",
+  "No one ever drowned in sweat",
+  "Dedication, determination, domination",
+  "One workout at a time, one day at a time",
+  "Muscles are earned, not given",
+  "Don’t let anyone dull your sparkle",
+  "Sore today, strong tomorrow",
+  "Willpower knows no obstacles",
+  "Be fearless in pursuit of what sets your soul on fire",
+  "Confidence is silent, insecurities are loud",
+  "Hustle for that muscle",
+  "I’m not strong for a girl, I’m just strong",
+  "Strong mind. Strong body. Strong woman.",
+  "Turn the pain into power",
+  "You don’t have to be extreme, just consistent"
+];
 
-/* Inventory */
-let INVENTORY = {};
-async function loadInventory(){
-  try{
-    const res = await fetch('inventory.json', {cache:'no-store'});
-    if(!res.ok) throw new Error('missing');
-    INVENTORY = await res.json() || {};
-  }catch(e){
-    console.warn('inventory.json not found, treating as unlimited stock', e);
-    INVENTORY = {};
-  }
-}
-const qtyFor = (pid, size) => { const rec = INVENTORY[pid]; if(!rec) return Infinity; if(size) return (rec[size] ?? 0); if('ONESIZE' in rec) return rec['ONESIZE']; return 0; };
-const productSoldOut = (pid, sizes) => { if(!sizes||sizes.length===0) return qtyFor(pid,'')<=0; return sizes.every(sz=>qtyFor(pid,sz)<=0); };
-
-/* Products (unchanged) */
+/* Products */
 const PRODUCTS=[
   {id:'tee',      name:'HIT T-Shirt',         price:12.00, sizes:['S','M','L','XL','2XL'], img:'tshirt.jpg'},
   {id:'vest',     name:'HIT Vest',            price:18.00, sizes:['S','M','L','XL'],       img:'vest.png'},
@@ -312,23 +350,76 @@ const PRODUCTS=[
   {id:'w_vest',   name:"Women's Vest",        price:12.00, sizes:['S','M','L','XL'],        img:'woman_vest.png',   personalize:true}
 ];
 
-/* Cart + UI state */
+/* Helpers */
+const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
-function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
-function updateFab(){ const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0); document.getElementById('basketCount').textContent=cart.reduce((n,l)=>n+l.qty,0); document.getElementById('basketTotal').textContent=currency(subtotal); }
 
-/* Size + quote controls */
+/* Inventory */
+let INVENTORY = {};
+async function loadInventory(){
+  try{
+    const res = await fetch('inventory.json', {cache:'no-store'});
+    if(!res.ok) throw new Error('missing');
+    INVENTORY = await res.json() || {};
+  }catch(e){
+    console.warn('inventory.json not found, treating as unlimited stock', e);
+    INVENTORY = {};
+  }
+}
+const qtyFor = (pid, size) => { const rec = INVENTORY[pid]; if(!rec) return Infinity; if(size) return (rec[size] ?? 0); if('ONESIZE' in rec) return rec['ONESIZE']; return 0; };
+const productSoldOut = (pid, sizes) => { if(!sizes||sizes.length===0) return qtyFor(pid,'')<=0; return sizes.every(sz=>qtyFor(pid,sz)<=0); };
 function buildSizeControl(p){
   if(!p.sizes||p.sizes.length===0){ const left=qtyFor(p.id,''); const badge=(left===Infinity)?'':`<span class="muted">Stock: ${left}</span>`;
     return `<input type="hidden" class="size"><span>${badge}</span>`; }
   const opts=p.sizes.map(sz=>{ const left=qtyFor(p.id,sz); const label=`${sz} ${left===Infinity?'':'(' + left + ')'}`; const disabled=(left<=0)?'disabled':''; return `<option value="${sz}" ${disabled}>${label}${left<=0?' — Sold out':''}</option>`; }).join('');
   return `<select class="size"><option value="">Size</option>${opts}</select>`;
 }
-const DEFAULT_QUOTE_LIST = ["Strength grows in the moments you think you can’t go on but you do","The only bad workout is the one you didn’t do"];
-function buildQuoteSelectHTML(){ const opts=['<option value="">Personalised Quote (add at checkout notes)( +£2.50 )</option>'].concat(DEFAULT_QUOTE_LIST.map(q=>`<option value="${q.replace(/"/g,'&quot;')}">${q}</option>`)).join(''); return `<select class="quote-select">${opts}</select>`; }
+
+/* Quote helpers */
+function buildQuoteSelectHTML(){ const opts=['<option value="">Personalised Quote (add at checkout notes)( +£2.50 )</option>'].concat(DEFAULT_QUOTE_LIST.map(q=>`<option value="${q.replace(/"/g,'&quot;')}">${q.length>70?q.slice(0,67)+'…':q}</option>`)).join(''); return `<select class="quote-select">${opts}</select>`; }
 function quoteKeyPart(q){ return q ? 'Q:' + encodeURIComponent(q).slice(0,140) : 'Q:-'; }
 function lineKey(l){ return l.id+'|'+(l.size||'')+'|'+(l.personalize?'P':'-')+'|'+quoteKeyPart(l.quote||''); }
+
+/* Toast */
+let toastTimer=null;
+function showToast(msg='Copied order to clipboard', onClick=null){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); t.onclick=null; if(onClick){ t.onclick=()=>{ onClick(); hideToast(); }; } clearTimeout(toastTimer); toastTimer=setTimeout(hideToast,2000); }
+function hideToast(){ const t=document.getElementById('toast'); t.classList.remove('show'); t.onclick=null; }
+
+function bumpFab(){ const fab=document.getElementById('basketFab'); fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); if(navigator.vibrate) navigator.vibrate(20); }
+function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); updateFab(); }
+
+/* Add/Remove */
+let lastAddedKey=null;
+function addToCart(line){
+  const key=lineKey(line);
+  const left = qtyFor(line.id, line.size||'');
+  if(!(left===Infinity) && line.qty>left){ alert(`Only ${left} left for that selection.`); return; }
+  const existing=cart.find(l=> lineKey(l)===key);
+  const wasEmpty = cart.length===0;
+  if(existing){ const newQty=existing.qty+line.qty; const cap=(left===Infinity)?newQty:Math.min(newQty,left); existing.qty=cap; }
+  else { cart.push(line); }
+  if(line.size){ localStorage.setItem('hh_size_'+line.id, line.size); }
+  saveCart(); renderCart();
+  showToast(`Added ${line.name}${line.size?' '+line.size:''}${line.personalize?' + personalised':''} — Undo`, ()=>{ removeFromCart(key); lastAddedKey=null; showToast('Removed'); });
+  lastAddedKey=key; bumpFab();
+  if(OPEN_DRAWER_ON_ADD && wasEmpty) openDrawer();
+}
+function removeFromCart(key){ cart=cart.filter(l=> lineKey(l)!==key); saveCart(); renderCart(); }
+
+/* Totals */
+function computeTotals(){
+  const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
+  let shipping=0; if(subtotal>0){ shipping = (selectedDeliveryMethod==='local')?0:(subtotal>=FREE_SHIPPING_OVER?0:SHIPPING_FLAT); }
+  let discountValue=0;
+  if(appliedDiscount){ if(appliedDiscount.type==='percent') discountValue=subtotal*(appliedDiscount.value/100); else if(appliedDiscount.type==='free_shipping') shipping=0; }
+  const grand=Math.max(0, subtotal-discountValue+shipping);
+  return {subtotal,shipping,discountValue,grand};
+}
+function updateFab(){ const {subtotal}=computeTotals(); document.getElementById('basketCount').textContent=cart.reduce((n,l)=>n+l.qty,0); document.getElementById('basketTotal').textContent=currency(subtotal); }
+
+/* Stepper template */
+function stepperHTML(initial=1){ return `<div class="stepper" data-stepper><button type="button" class="dec" aria-label="Decrease quantity">−</button><input type="number" class="qty" min="1" value="${initial}"><button type="button" class="inc" aria-label="Increase quantity">+</button></div>`; }
 
 /* Render products */
 function renderProducts(){
@@ -349,16 +440,19 @@ function renderProducts(){
           ${p.personalize ? `<div class="row">${buildQuoteSelectHTML()}</div>` : ''}
           <div class="row">
             ${buildSizeControl(p)}
-            <div class="stepper" data-stepper><button type="button" class="dec">−</button><input type="number" class="qty" min="1" value="1"><button type="button" class="inc">+</button></div>
+            ${stepperHTML(1)}
           </div>
         </div>
         <div class="row"><button class="btn btn-accent btn-block add" ${soldOut?'disabled':''}>${soldOut?'Sold out':'Add to Basket'}</button></div>
       </div>`;
+    if(p.sizes){ const sel=card.querySelector('.size'); const saved=localStorage.getItem('hh_size_'+p.id); if(saved && [...sel.options].some(o=>o.value===saved && !o.disabled)) sel.value=saved; }
     let adding=false;
     card.querySelector('.add').onclick=()=>{
       if(adding) return; adding=true;
-      const sizeEl=card.querySelector('.size'); const size = sizeEl ? (sizeEl.value||'') : '';
+      const sizeEl=card.querySelector('.size');
+      const size=p.sizes?(sizeEl.value||''):'';
       if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); adding=false; return; }
+      sizeEl.classList.remove('error');
       const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
       const left = qtyFor(p.id, p.sizes?size:''); if(!(left===Infinity) && qty>left){ alert(`Only ${left} left for that size.`); adding=false; return; }
       const selectedQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
@@ -369,15 +463,8 @@ function renderProducts(){
     grid.appendChild(card);
   });
 }
-function addToCart(line){
-  const key=lineKey(line);
-  const left = qtyFor(line.id, line.size||'');
-  if(!(left===Infinity) && line.qty>left){ alert(`Only ${left} left for that selection.`); return; }
-  const existing=cart.find(l=> lineKey(l)===key);
-  if(existing){ const newQty=existing.qty+line.qty; const cap=(left===Infinity)?newQty:Math.min(newQty,left); existing.qty=cap; }
-  else { cart.push(line); }
-  saveCart(); renderCart();
-}
+
+/* Render cart */
 function renderCart(){
   const cartItems=document.getElementById('cartItems');
   cartItems.innerHTML=cart.length?'' : '<div class="note">Your basket is empty.</div>';
@@ -386,97 +473,148 @@ function renderCart(){
     const row=document.createElement('div');
     row.className='cart-line';
     row.dataset.key=key;
+    const left = qtyFor(l.id, l.size||'');
+    const capNote = (left!==Infinity) ? `<span class="muted"> (Max ${left})</span>` : '';
     row.innerHTML=`
       <div>
-        <strong>${l.name}${l.size?` — ${l.size}`:''}${l.personalize?' + Personalised':''}</strong>
-        <div class="meta">${currency(l.price)} × ${l.qty}</div>
+        <strong>${l.name}${l.size?` — ${l.size}`:''}${l.personalize?' + Personalised':''}</strong> ${capNote}
+        <div class="meta">${currency(l.price)} ×&nbsp; ${stepperHTML(l.qty)}</div>
+        ${l.quote ? `<div class="meta"><em>Quote:</em> “${l.quote.replace(/</g,'&lt;')}”</div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div style="min-width:90px;text-align:right;font-weight:800">${currency(l.price*l.qty)}</div>
         <button class="btn btn-bad small" title="Remove">✕</button>
       </div>`;
-    row.querySelector('.btn-bad').onclick=()=>{ cart=cart.filter(x=> lineKey(x)!==key); saveCart(); renderCart(); };
+    row.querySelector('.btn-bad').onclick=()=>removeFromCart(key);
     cartItems.appendChild(row);
   });
+
+  const {subtotal,shipping,discountValue,grand}=computeTotals();
+  document.getElementById('subtotal').textContent=currency(subtotal);
+  document.getElementById('shipping').textContent=currency(shipping);
+  document.getElementById('grand').textContent=currency(grand);
+
+  const dr=document.getElementById('discountRow'), dv=document.getElementById('discount');
+  if(discountValue>0){ dr.style.display=''; dv.textContent='-'+currency(discountValue).replace('£',''); } else { dr.style.display='none'; }
+
   updateFab();
+
+  if (document.getElementById('paypalButtons').style.display === 'block') {
+    renderPayPalButtons();
+  }
+
+  queueMicrotask(updateScrollHint);
 }
 
-/* Totals */
-function computeTotals(){
-  const subtotal=cart.reduce((s,l)=>s+l.price*l.qty,0);
-  let shipping=0; if(subtotal>0){ shipping = (selectedDeliveryMethod==='local')?0:(subtotal>=60?0:3.99); }
-  const grand=Math.max(0, subtotal+shipping);
-  return {subtotal,shipping,grand};
-}
+/* Stepper delegation */
+document.addEventListener('click',(e)=>{
+  const btn=e.target.closest('.stepper .inc, .stepper .dec'); if(!btn) return;
+  const wrap=btn.closest('.stepper'); const input=wrap.querySelector('input.qty');
+  let val=Math.max(1, parseInt(input.value||'1',10));
+  if(btn.classList.contains('inc')) val++; else val=Math.max(1,val-1);
+  const row=btn.closest('.cart-line');
+  if(row){
+    const key=row.dataset.key;
+    const line=cart.find(l=> lineKey(l)===key);
+    if(line){ const left = qtyFor(line.id, line.size||''); if(!(left===Infinity)) val = Math.min(val, left);
+      line.qty=val; input.value=String(val); saveCart(); renderCart(); }
+  } else { input.value=String(val); }
+},{passive:false});
 
-/* Scroll lock & drawer controls (as before) */
+document.addEventListener('input',(e)=>{
+  const input=e.target;
+  if(!(input.matches && input.matches('.cart-line input.qty'))) return;
+  const row=input.closest('.cart-line'); const key=row?.dataset?.key;
+  const line=cart.find(l=> lineKey(l)===key);
+  let val=Math.max(1, parseInt(input.value||'1',10));
+  if(line){ const left = qtyFor(line.id, line.size||''); if(!(left===Infinity)) val = Math.min(val, left);
+    line.qty=val; input.value=String(val); saveCart(); renderCart(); }
+});
+
+/* Scroll lock */
 let __scrollY = 0;
-const drawerContent = document.getElementById('drawerContent');
-const scrollHint = document.getElementById('scrollHint');
 function lockBodyScroll(){ __scrollY = window.scrollY || document.documentElement.scrollTop || 0; document.body.style.setProperty('--scroll-lock-top', `-${__scrollY}px`); document.body.classList.add('scroll-lock'); }
 function unlockBodyScroll(){ document.body.classList.remove('scroll-lock'); document.body.style.removeProperty('--scroll-lock-top'); window.scrollTo(0, __scrollY || 0); }
+
+/* Scroll hint */
+const drawerContent = document.getElementById('drawerContent');
+const scrollHint = document.getElementById('scrollHint');
 function updateScrollHint(){ const hasOverflow = drawerContent.scrollHeight > drawerContent.clientHeight + 8;
   if(!hasOverflow){ scrollHint.style.display='none'; return; } scrollHint.style.display = (drawerContent.scrollTop <= 20) ? 'block' : 'none'; }
 drawerContent.addEventListener('scroll', updateScrollHint); window.addEventListener('resize', updateScrollHint);
+
+/* Drawer UX */
 function openDrawer(){ const d=document.getElementById('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); d.querySelector('.panel').focus?.(); lockBodyScroll(); drawerContent.scrollTop = 0; updateScrollHint(); }
 function closeDrawer(){ const d=document.getElementById('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.getElementById('basketFab').focus?.(); unlockBodyScroll(); }
 document.getElementById('basketFab').onclick=openDrawer;
 document.getElementById('closeDrawer').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
-['wheel','touchmove'].forEach(evt=>{ document.getElementById('drawerBackdrop').addEventListener(evt, e=>{ e.preventDefault(); }, {passive:false}); });
+const __backdrop = document.getElementById('drawerBackdrop');
+['wheel','touchmove'].forEach(evt=>{ __backdrop.addEventListener(evt, e=>{ e.preventDefault(); }, {passive:false}); });
 document.querySelector('.panel').addEventListener('wheel', e=>{ e.stopPropagation(); }, {passive:true});
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && document.getElementById('drawer').classList.contains('open')) closeDrawer(); });
+document.addEventListener('wheel',(e)=>{ const el=document.activeElement; if(el && el.type==='number'){ el.blur(); } }, {passive:true});
 
-/* Form + validation */
+/* Form persistence & validation */
 function getFormData(){ const fd=new FormData(document.getElementById('checkoutForm')); return Object.fromEntries(fd.entries()); }
 function validateEmailAddress(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e||'').trim()); }
-function validateForm(){
+function validateForm(showErrors=true){
   const form=document.getElementById('checkoutForm'); const c=getFormData();
   const required=['firstName','lastName','email','addr1','city','postcode','country'];
   let ok=true; form.querySelectorAll('input,textarea,select').forEach(el=>el.classList.remove('error'));
-  for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; form.querySelector(`[name="${k}"]`)?.classList.add('error'); } }
-  if(!validateEmailAddress(c.email)){ ok=false; form.querySelector('[name="email"]')?.classList.add('error'); alert('Please enter a valid email.'); }
-  if(!cart.length){ ok=false; alert('Your cart is empty.'); }
-  const ack=document.getElementById('orderAcknowledge'); const ackWrap=document.getElementById('ackWrap');
-  if(!ack.checked){ ok=false; ackWrap.classList.add('error','shake'); ackWrap.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(()=>ackWrap.classList.remove('shake'), 500); }
+  for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ form.querySelector(`[name="${k}"]`)?.classList.add('error'); } } }
+  if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]')?.classList.add('error'); alert('Please enter a valid email.'); } }
+  if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
+  const ack = document.getElementById('orderAcknowledge');
+  if(!ack.checked){ ok=false; if(showErrors){ alert('Please tick the acknowledgement to continue.'); } }
   return ok;
 }
-
-/* Email link builders */
-function buildEmailLinks({to, subject, body}){
-  const enc = s => encodeURIComponent(s);
-  const mailto = `mailto:${encodeURIComponent(to)}?subject=${enc(subject)}&body=${enc(body)}`;
-  const gmail  = `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
-  const outlook= `https://outlook.live.com/mail/0/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
-  const yahoo  = `https://compose.mail.yahoo.com/?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
-  return { mailto, gmail, outlook, yahoo };
+document.getElementById('checkoutForm').addEventListener('input',()=>{ localStorage.setItem('hh_checkout_form', JSON.stringify(getFormData())); });
+function restoreForm(){ const raw=localStorage.getItem('hh_checkout_form'); if(!raw) return;
+  const data=JSON.parse(raw); const form=document.getElementById('checkoutForm');
+  Object.entries(data).forEach(([k,v])=>{ const el=form.querySelector(`[name="${k}"]`); if(el!=null) el.value=v; });
 }
 
-/* Order number + email send */
-let CURRENT_ORDER_NUMBER=null;
+/* Delivery segmented control */
+document.getElementById('deliverySeg').addEventListener('click',(e)=>{
+  const btn = e.target.closest('button[data-method]'); if(!btn) return;
+  const seg = document.getElementById('deliverySeg');
+  [...seg.querySelectorAll('button')].forEach(b=>b.setAttribute('aria-pressed','false'));
+  btn.setAttribute('aria-pressed','true');
+  selectedDeliveryMethod = btn.dataset.method === 'post' ? 'post' : 'local';
+  renderCart();
+});
+
+/* ---------- Order Number ---------- */
+let CURRENT_ORDER_NUMBER = null;
 function generateOrderNumber(){
   const dt=new Date();
   const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0');
-  const rand=Math.random().toString(36).slice(2,6).toUpperCase();
-  const key='hh_on_counter_'+`${y}${m}${d}`;
-  const n=(parseInt(localStorage.getItem(key)||'0',10) || 0) + 1;
+  const rand = Math.random().toString(36).slice(2,6).toUpperCase();
+  const key='hh_on_counter_'+`${y}${m}${d}`; const n = (parseInt(localStorage.getItem(key)||'0',10) || 0) + 1;
   localStorage.setItem(key, String(n));
   return `HAH-${y}${m}${d}-${rand}${n>1?('-'+String(n).padStart(2,'0')):''}`;
 }
+
+/* Order text */
+function getDeliveryLabel(){ return DELIVERY_LABELS[selectedDeliveryMethod] || 'Local pickup/delivery — FREE'; }
 function buildOrderText(orderNumber){
-  const c=getFormData();
-  const totals=computeTotals();
-  const lines=cart.map(l => `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}`).join('\n');
+  const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
+  const lines=cart.map(l =>
+    `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}${l.quote?`\n   • Quote: "${l.quote}"`:''}`
+  ).join('\n');
   const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
+  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
+  const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
   return `ORDER SUMMARY — HealthAndHIT
 Order No: ${orderNumber}
 ----------------------------
 ${lines}
 ----------------------------
-Subtotal: ${currency(totals.subtotal)}
-Shipping: ${currency(totals.shipping)}
-Total: ${currency(totals.grand)}
-
+Subtotal: ${currency(subtotal)}
+${discSection}Shipping: ${currency(shipping)}
+Total: ${currency(grand)}
+${deliverySection}
 CUSTOMER
 Name: ${c.firstName} ${c.lastName}
 Email: ${c.email}
@@ -488,75 +626,128 @@ ${c.notes?`Notes:\n${c.notes}\n`:''}
 (Please reply to confirm.)`;
 }
 
-/* PayPal buttons (unchanged logic) */
-let lastRenderedAmount=null;
+/* Discount code */
+document.getElementById('applyDiscountBtn').onclick=()=>{
+  const code=(document.getElementById('discountCode').value||'').trim().toUpperCase();
+  const msg=document.getElementById('discountMsg');
+  if(!code){ appliedDiscount=null; msg.textContent=''; renderCart(); return; }
+  if(DISCOUNT_CODES[code]){
+    appliedDiscount=DISCOUNT_CODES[code];
+    msg.textContent = code==='HITFREE' ? 'Free delivery applied.' : `${appliedDiscount.value}% off applied.`;
+  }else{ appliedDiscount=null; msg.textContent='Invalid code.'; }
+  renderCart();
+};
+
+/* ----- PayPal Smart Buttons (same as before) ----- */
+let lastRenderedAmount = null;
 function renderPayPalButtons(){
-  const host=document.getElementById('paypalButtons');
-  host.style.display='block';
-  const { grand }=computeTotals();
-  const amount=(Math.round(grand*100)/100).toFixed(2);
-  if(amount===lastRenderedAmount && host.firstChild) return;
-  host.innerHTML=""; lastRenderedAmount=amount;
+  const host = document.getElementById('paypalButtons');
+  host.style.display = 'block';
+  const { grand } = computeTotals();
+  const amount = (Math.round(grand*100)/100).toFixed(2);
+  if (amount === lastRenderedAmount && host.firstChild) return;
+  host.innerHTML = "";
+  lastRenderedAmount = amount;
+
   paypal.Buttons({
-    style:{layout:'horizontal', shape:'pill', label:'pay'},
-    createOrder:(data,actions)=>{
-      const { grand }=computeTotals(); const value=(Math.round(grand*100)/100).toFixed(2);
-      const desc=CURRENT_ORDER_NUMBER ? `HealthAndHIT • ${CURRENT_ORDER_NUMBER}` : 'HealthAndHIT order';
-      return actions.order.create({ purchase_units:[{ amount:{ currency_code:'GBP', value }, description:desc, invoice_id: CURRENT_ORDER_NUMBER || undefined }] });
+    style: { layout:'horizontal', shape:'pill', label:'pay' },
+    createOrder: (data, actions) => {
+      const { grand } = computeTotals();
+      const value = (Math.round(grand*100)/100).toFixed(2);
+      const desc  = CURRENT_ORDER_NUMBER ? `HealthAndHIT • ${CURRENT_ORDER_NUMBER}` : 'HealthAndHIT order';
+      return actions.order.create({
+        purchase_units: [{
+          amount: { currency_code: 'GBP', value },
+          description: desc,
+          invoice_id: CURRENT_ORDER_NUMBER || undefined
+        }]
+      });
     },
-    onApprove:(data,actions)=>actions.order.capture().then(details=>{
-      confettiBurst(); cart=[]; saveCart(); renderCart();
+    onApprove: (data, actions) => actions.order.capture().then(details => {
+      confettiBurst();
+      showToast(`Thanks ${details?.payer?.name?.given_name || ''}! Payment received.`);
+      cart=[]; saveCart(); renderCart();
       alert('Payment complete. We’ll confirm your order by email shortly.');
     }),
-    onError:(err)=>{ console.error(err); alert('PayPal error — please try again.'); }
+    onError: (err) => { console.error(err); alert('PayPal error — please try again.'); }
   }).render('#paypalButtons');
 }
 
-/* Button click */
-document.getElementById('emailOrderBtn').addEventListener('click', async (e)=>{
-  e.preventDefault();
-  const ack=document.getElementById('orderAcknowledge'); const ackWrap=document.getElementById('ackWrap');
-  // remove old error state if re-clicking
-  ackWrap.classList.remove('shake');
-  if(!validateForm()) return;
-  CURRENT_ORDER_NUMBER=generateOrderNumber();
-  const c=getFormData(); const text=buildOrderText(CURRENT_ORDER_NUMBER);
-  try{ await navigator.clipboard.writeText(text);}catch(e){}
+/* Email flow (keeps Smart Buttons, removes PayPal.me pop-up) */
+const emailBtn=document.getElementById('emailOrderBtn');
+const ackBox=document.getElementById('orderAcknowledge');
+ackBox.addEventListener('change', ()=>{ emailBtn.disabled = !ackBox.checked; });
+
+emailBtn.onclick=async ()=>{
+  if(!validateForm(true)) return;
+
+  CURRENT_ORDER_NUMBER = generateOrderNumber();
+  const c=getFormData();
+  const text=buildOrderText(CURRENT_ORDER_NUMBER);
+
+  try { await navigator.clipboard.writeText(text); showToast('Order copied to clipboard'); } catch(e){}
+
   const subject=`Order ${CURRENT_ORDER_NUMBER} — ${c.firstName} ${c.lastName}`;
   const links=buildEmailLinks({subject, body:text, to:MERCHANT_EMAIL});
-  window.location.href=links.mailto;
-  document.getElementById('emailFallback').style.display='';
+
+  window.location.href=links.mailto;            // open default email client
+  document.getElementById('emailFallback').style.display='';  // show webmail buttons as fallback
   document.getElementById('gmailLink').href=links.gmail;
   document.getElementById('outlookLink').href=links.outlook;
   document.getElementById('yahooLink').href=links.yahoo;
-  document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text);}catch(e){} };
-  document.getElementById('payGate').innerHTML = `✔️ Email prepared. <b>Order ${CURRENT_ORDER_NUMBER}</b>. Now complete payment below.`;
-  renderPayPalButtons();
-  confettiBurst();
-});
+  document.getElementById('copyOrderBtn').onclick=async ()=>{ try{ await navigator.clipboard.writeText(text); showToast('Order copied'); }catch(e){} };
 
-/* Simple confetti */
+  const gate = document.getElementById('payGate');
+  gate.innerHTML = `✔️ Email prepared. <b>Order ${CURRENT_ORDER_NUMBER}</b>. Now complete payment below.`;
+
+  // show Smart Buttons (no PayPal.me popup)
+  renderPayPalButtons();
+
+  // prevent double-submits
+  emailBtn.disabled = true;
+  emailBtn.textContent = `Order ${CURRENT_ORDER_NUMBER} created`;
+
+  confettiBurst();
+};
+
+/* Confetti */
 function confettiBurst(){
   const canvas=document.getElementById('confetti'), ctx=canvas.getContext('2d');
   const w=canvas.width=window.innerWidth, h=canvas.height=window.innerHeight;
-  const N=110, parts=[]; for(let i=0;i<N;i++) parts.push({x:Math.random()*w,y:-20-Math.random()*h*0.3,r:2+Math.random()*4,vy:2+Math.random()*3,vx:(Math.random()-0.5)*2,a:Math.random()*Math.PI,va:(Math.random()*0.2-0.1)});
+  const N=140, parts=[]; for(let i=0;i<N;i++) parts.push({x:Math.random()*w,y:-20-Math.random()*h*0.3,r:2+Math.random()*4,vy:2+Math.random()*3,vx:(Math.random()-0.5)*2,a:Math.random()*Math.PI,va:(Math.random()*0.2-0.1)});
   let t=0; (function step(){ ctx.clearRect(0,0,w,h); parts.forEach(p=>{ p.y+=p.vy; p.x+=p.vx; p.a+=p.va; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a);
     ctx.fillStyle=`hsl(${(p.x+p.y)%360},100%,60%)`; ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2); ctx.restore(); });
-    if(++t<110) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h); })();
+    if(++t<120) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h); })();
 }
 
-/* Init */
+/* Discount popup controls + init */
 function closeDiscount(){ const el=document.getElementById('discountPopup'); el.style.display='none'; sessionStorage.setItem('welcomeShown','true'); }
 async function init(){
   await loadInventory();
-  renderProducts(); renderCart(); updateFab();
+  renderProducts(); renderCart(); updateFab(); restoreForm();
+
+  const __qs=new URLSearchParams(location.search);
+  if(__qs.get('welcome')==='1') sessionStorage.removeItem('welcomeShown');
+
   const pop=document.getElementById('discountPopup');
   if(!sessionStorage.getItem('welcomeShown')) pop.style.display='flex'; else pop.style.display='none';
   pop.addEventListener('click',(e)=>{ if(e.target.id==='discountPopup') closeDiscount(); });
   document.getElementById('discountCloseBtn').addEventListener('click', closeDiscount);
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && pop.style.display!=='none') closeDiscount(); });
+
   updateScrollHint();
 }
 init();
+
+/* Email link builders */
+function buildEmailLinks({to, subject, body}){
+  const enc = s => encodeURIComponent(s);
+  const mailto = `mailto:${encodeURIComponent(to)}?subject=${enc(subject)}&body=${enc(body)}`;
+  const gmail  = `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(to)}&su=${enc(subject)}&body=${enc(body)}`;
+  const outlook= `https://outlook.live.com/mail/0/deeplink/compose?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  const yahoo  = `https://compose.mail.yahoo.com/?to=${enc(to)}&subject=${enc(subject)}&body=${enc(body)}`;
+  return { mailto, gmail, outlook, yahoo };
+}
 </script>
 </body>
 </html>

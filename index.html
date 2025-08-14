@@ -112,6 +112,19 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .ack input{margin-top:3px}
 .ack small{color:#cfcfe5; line-height:1.35}
 
+/* >>> T&Cs SHAKE + HIGHLIGHT >>> */
+.ack.highlight {
+  border-color: var(--bad);
+  box-shadow: 0 0 6px var(--bad);
+  animation: shake 0.4s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+/* <<< T&Cs SHAKE + HIGHLIGHT <<< */
+
 /* Popup + toast */
 #discountPopup{position: fixed; inset:0; background: rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:999;}
 #discountPopup .box{background: var(--card); padding: 20px; border-radius: var(--radius); max-width: 320px; text-align:center; box-shadow: var(--shadow);}
@@ -211,7 +224,8 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <b>Step 1:</b> Press <em>Send Order by Email</em> to submit details. <b>Step 2:</b> Pay using the PayPal button that appears below.
         </div>
 
-        <button class="btn btn-accent btn-block" id="emailOrderBtn" disabled>Send Order by Email</button>
+        <!-- REMOVED disabled so clicking can trigger shake/highlight -->
+        <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
 
         <div id="emailFallback" class="gate" style="display:none">
           Email didn’t open? Choose one:
@@ -393,7 +407,7 @@ function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); upda
 let lastAddedKey=null;
 function addToCart(line){
   const key=lineKey(line);
-  const left = qtyFor(line.id, line.size||'');
+  const left = qtyFor(line.id, line.size||''); 
   if(!(left===Infinity) && line.qty>left){ alert(`Only ${left} left for that selection.`); return; }
   const existing=cart.find(l=> lineKey(l)===key);
   const wasEmpty = cart.length===0;
@@ -565,8 +579,9 @@ function validateForm(showErrors=true){
   for(const k of required){ if(!String(c[k]||'').trim()){ ok=false; if(showErrors){ form.querySelector(`[name="${k}"]`)?.classList.add('error'); } } }
   if(!validateEmailAddress(c.email)){ ok=false; if(showErrors){ form.querySelector('[name="email"]')?.classList.add('error'); alert('Please enter a valid email.'); } }
   if(!cart.length){ ok=false; if(showErrors){ alert('Your cart is empty.'); } }
+  // Leave ack alert here for other potential callers, but our click handler bypasses it when unchecked
   const ack = document.getElementById('orderAcknowledge');
-  if(!ack.checked){ ok=false; if(showErrors){ alert('Please tick the acknowledgement to continue.'); } }
+  if(!ack.checked){ ok=false; if(showErrors){ /* alert suppressed by click handler path */ } }
   return ok;
 }
 document.getElementById('checkoutForm').addEventListener('input',()=>{ localStorage.setItem('hh_checkout_form', JSON.stringify(getFormData())); });
@@ -602,10 +617,10 @@ function buildOrderText(orderNumber){
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
   const lines=cart.map(l =>
     `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''} x ${l.qty} — ${currency(l.price*l.qty)}${l.quote?`\n   • Quote: "${l.quote}"`:''}`
-  ).join('\n');
-  const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
-  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
-  const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
+  ).join('\\n');
+  const address=`${c.firstName} ${c.lastName}\\n${c.addr1}\\n${c.addr2||''}\\n${c.city}${c.county?`, ${c.county}`:''}\\n${c.postcode}\\n${c.country}`;
+  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\\n`:'';
+  const deliverySection=`Delivery method: ${getDeliveryLabel()}\\n`;
   return `ORDER SUMMARY — HealthAndHIT
 Order No: ${orderNumber}
 ----------------------------
@@ -622,7 +637,7 @@ Phone: ${c.phone||'-'}
 Address:
 ${address}
 
-${c.notes?`Notes:\n${c.notes}\n`:''}
+${c.notes?`Notes:\\n${c.notes}\\n`:''}
 (Please reply to confirm.)`;
 }
 
@@ -638,7 +653,7 @@ document.getElementById('applyDiscountBtn').onclick=()=>{
   renderCart();
 };
 
-/* ----- PayPal Smart Buttons (same as before) ----- */
+/* ----- PayPal Smart Buttons ----- */
 let lastRenderedAmount = null;
 function renderPayPalButtons(){
   const host = document.getElementById('paypalButtons');
@@ -673,12 +688,22 @@ function renderPayPalButtons(){
   }).render('#paypalButtons');
 }
 
-/* Email flow (keeps Smart Buttons, removes PayPal.me pop-up) */
+/* Email flow (patched to highlight + shake T&Cs on click if not ticked) */
 const emailBtn=document.getElementById('emailOrderBtn');
 const ackBox=document.getElementById('orderAcknowledge');
-ackBox.addEventListener('change', ()=>{ emailBtn.disabled = !ackBox.checked; });
 
 emailBtn.onclick=async ()=>{
+  const ackLabel = ackBox.closest('.ack');
+  ackLabel.classList.remove('highlight');
+
+  // If not checked, just highlight + shake and stop. No alerts.
+  if (!ackBox.checked) {
+    ackLabel.classList.add('highlight');
+    setTimeout(() => ackLabel.classList.remove('highlight'), 600);
+    return;
+  }
+
+  // Now run the normal validation for everything else
   if(!validateForm(true)) return;
 
   CURRENT_ORDER_NUMBER = generateOrderNumber();
@@ -700,7 +725,7 @@ emailBtn.onclick=async ()=>{
   const gate = document.getElementById('payGate');
   gate.innerHTML = `✔️ Email prepared. <b>Order ${CURRENT_ORDER_NUMBER}</b>. Now complete payment below.`;
 
-  // show Smart Buttons (no PayPal.me popup)
+  // show Smart Buttons
   renderPayPalButtons();
 
   // prevent double-submits

@@ -113,17 +113,8 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .ack small{color:#cfcfe5; line-height:1.35}
 
 /* >>> T&Cs SHAKE + HIGHLIGHT >>> */
-.ack.highlight {
-  border-color: var(--bad);
-  box-shadow: 0 0 6px var(--bad);
-  animation: shake 0.4s ease;
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
-}
-/* <<< T&Cs SHAKE + HIGHLIGHT <<< */
+.ack.highlight { border-color: var(--bad); box-shadow: 0 0 6px var(--bad); animation: shake 0.4s ease; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
 /* Popup + toast */
 #discountPopup{position: fixed; inset:0; background: rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:999;}
@@ -145,13 +136,9 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
 .swatch .check{display:none; position:absolute; inset:0; align-items:center; justify-content:center; font-size:14px; color:#fff; text-shadow:0 1px 2px #000}
 .swatch.active .check{display:flex}
 .swatch.disabled{ filter:grayscale(1) brightness(.65); cursor:not-allowed; }
-.swatch.disabled::after{
-  content:"✕"; position:absolute; inset:0; display:grid; place-items:center;
-  font-weight:900; color:#fff; text-shadow:0 1px 2px #000;
-}
+.swatch.disabled::after{ content:"✕"; position:absolute; inset:0; display:grid; place-items:center; font-weight:900; color:#fff; text-shadow:0 1px 2px #000; }
 .color-chip{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; border:1px solid #444; background:#16171d; margin-top:6px; font-size:.85rem}
 .color-dot{width:12px; height:12px; border-radius:999px; border:1px solid #333; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-/* <<< NEW: Colour swatches <<< */
 </style>
 </head>
 <body>
@@ -238,7 +225,6 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <b>Step 1:</b> Press <em>Send Order by Email</em> to submit details. <b>Step 2:</b> Pay using the PayPal button that appears below.
         </div>
 
-        <!-- REMOVED disabled so clicking can trigger shake/highlight -->
         <button class="btn btn-accent btn-block" id="emailOrderBtn">Send Order by Email</button>
 
         <div id="emailFallback" class="gate" style="display:none">
@@ -252,7 +238,6 @@ select, input[type="number"], input[type="text"], input[type="email"], textarea{
           <div class="muted" style="margin-top:6px">The order text is copied — just paste it in your email.</div>
         </div>
 
-        <!-- PayPal Smart Buttons -->
         <div id="paypalButtons" style="display:none; padding-top:8px;"></div>
       </div>
     </div>
@@ -383,18 +368,45 @@ const currency=v=>'£'+(Math.round(v*100)/100).toFixed(2);
 const grid=document.getElementById('productsGrid');
 let cart=JSON.parse(localStorage.getItem('hh_cart')||'[]');
 
-/* Inventory (fallback-friendly) */
+/* Inventory */
 let INVENTORY = {};
 function safeLoadInventory(){
   fetch('inventory.json', {cache:'no-store'})
     .then(r=>r.ok?r.json():null)
-    .then(j=>{ if(j){ INVENTORY=j; recheckAllColourSwatches(); } })
+    .then(j=>{ if(j){ INVENTORY=j; recheckAllColourSwatches(); refreshAllSizeOptions(); refreshAllOneSizeBadges(); } })
     .catch(()=>{});
 }
-const qtyFor = (pid, size) => { const rec = INVENTORY[pid]; if(!rec) return Infinity; if(size) return (rec[size] ?? 0); if('ONESIZE' in rec) return rec['ONESIZE']; return 0; };
-const productSoldOut = (pid, sizes) => { if(!sizes||sizes.length===0) return qtyFor(pid,'')<=0; return sizes.every(sz=>qtyFor(pid,sz)<=0); };
 
-/* >>> NEW: Colour options + helpers */
+/* ---------- COLOUR + SIZE AWARE QUANTITIES ---------- */
+function firstColourKey(pid){
+  const rec = INVENTORY[pid];
+  if (!rec || !rec.COLORS) return null;
+  const keys = Object.keys(rec.COLORS);
+  return keys.length ? keys[0] : null;
+}
+function qtyFor(pid, size, colorKey){
+  const rec = INVENTORY[pid];
+  if (!rec || !rec.COLORS) return Infinity; // treat as unlimited if no colour structure provided
+  const key = colorKey || firstColourKey(pid);
+  if (!key) return 0;
+  const bucket = rec.COLORS[key];
+  if (!bucket) return 0;
+  if (size) return bucket[size] ?? 0;
+  return bucket['ONESIZE'] ?? 0;
+}
+function productSoldOut(pid, sizes){
+  const rec = INVENTORY[pid];
+  if (!rec || !rec.COLORS) return false; // unknown → assume available
+  const colours = Object.keys(rec.COLORS);
+  if (!sizes || sizes.length === 0) {
+    // one-size: if ALL colours have ONESIZE 0 or missing → sold out
+    return colours.every(c => (rec.COLORS[c].ONESIZE ?? 0) <= 0);
+  }
+  // clothing: sold out only if every colour has 0 for every size
+  return colours.every(c => sizes.every(sz => (rec.COLORS[c][sz] ?? 0) <= 0));
+}
+
+/* >>> Colour UI helpers */
 const COLOR_OPTIONS = [
   { key:'black', name:'Black', hex:'#111111' },
   { key:'white', name:'White', hex:'#ffffff' },
@@ -415,13 +427,8 @@ function getSelectedColour(wrap){
   return cfg ? { key:cfg.key, name:cfg.name, hex:cfg.hex } : null;
 }
 function hasColorInventory(pid){ const rec = INVENTORY[pid]; return !!(rec && rec.COLORS); }
-function qtyForColor(pid, size, colorKey){
-  const rec = INVENTORY[pid];
-  if(!rec || !rec.COLORS){ return Infinity; }
-  const bucket = rec.COLORS[colorKey]; if(!bucket) return 0;
-  if(size){ return bucket[size] ?? 0; }
-  return bucket['ONESIZE'] ?? 0;
-}
+function qtyForColor(pid, size, colorKey){ return qtyFor(pid, size, colorKey); }
+
 function refreshColourSwatches(cardEl, product){
   const sizeEl = cardEl.querySelector('.size');
   const size = product.sizes ? (sizeEl?.value || "") : "";
@@ -437,11 +444,44 @@ function refreshColourSwatches(cardEl, product){
     }
   });
 }
-function recheckAllColourSwatches(){
+
+/* ----- Size options are rebuilt per selected colour ----- */
+function refreshSizeOptions(cardEl, product){
+  const sel = cardEl.querySelector('.size');
+  if(!sel) return;
+  const swatchWrap = cardEl.querySelector('[data-swatches]');
+  const color = getSelectedColour(swatchWrap)?.key || firstColourKey(product.id);
+  const saved = localStorage.getItem('hh_size_'+product.id) || '';
+  let html = '<option value="">Size</option>';
+  (product.sizes || []).forEach(sz=>{
+    const left = qtyFor(product.id, sz, color);
+    const disabled = left <= 0 ? 'disabled' : '';
+    const label = `${sz}${Number.isFinite(left)?` (${left})`:''}`;
+    html += `<option value="${sz}" ${disabled}>${label}${left<=0?' — Sold out':''}</option>`;
+  });
+  sel.innerHTML = html;
+  if(saved && [...sel.options].some(o=>o.value===saved && !o.disabled)) sel.value=saved;
+}
+function refreshAllSizeOptions(){
   document.querySelectorAll('.card').forEach(card=>{
     const pid = card.getAttribute('data-pid');
     const product = PRODUCTS.find(p=>p.id===pid);
-    if(product) refreshColourSwatches(card, product);
+    if(product?.sizes) refreshSizeOptions(card, product);
+  });
+}
+function refreshOneSizeBadge(cardEl, product){
+  if(product.sizes && product.sizes.length) return;
+  const wrap = cardEl.querySelector('[data-swatches]');
+  const colorKey = getSelectedColour(wrap)?.key || firstColourKey(product.id);
+  const left = qtyFor(product.id, '', colorKey);
+  const badge = cardEl.querySelector('[data-onesize-badge]');
+  if(badge) badge.textContent = (left===Infinity)?'' : (left>0?`Stock: ${left}`:'Sold out');
+}
+function refreshAllOneSizeBadges(){
+  document.querySelectorAll('.card').forEach(card=>{
+    const pid = card.getAttribute('data-pid');
+    const product = PRODUCTS.find(p=>p.id===pid);
+    if(product) refreshOneSizeBadge(card, product);
   });
 }
 
@@ -474,22 +514,20 @@ function saveCart(){ localStorage.setItem('hh_cart', JSON.stringify(cart)); upda
 let lastAddedKey=null;
 function addToCart(line){
   const key=lineKey(line);
-  const left = qtyFor(line.id, line.size||''); 
-  if(!(left===Infinity) && line.qty>left){ alert(`Only ${left} left for that selection.`); return; }
 
-  if(line.color && hasColorInventory(line.id)){
-    const leftColor = qtyForColor(line.id, line.size||"", line.color.key);
-    if(leftColor <= 0){ alert('That colour is out of stock for the selected size.'); return; }
-    if(!(leftColor===Infinity) && line.qty>leftColor){ alert(`Only ${leftColor} left for that colour/size.`); return; }
-  }
+  // Check stock for SIZE + COLOUR
+  const leftSizeColor = qtyFor(line.id, line.size || '', line.color?.key);
+  if(!(leftSizeColor===Infinity) && line.qty>leftSizeColor){ alert(`Only ${leftSizeColor} left for that colour/size.`); return; }
 
   const existing=cart.find(l=> lineKey(l)===key);
   const wasEmpty = cart.length===0;
-  if(existing){ const newQty=existing.qty+line.qty;
-    const capColor = (line.color && hasColorInventory(line.id)) ? qtyForColor(line.id, line.size||"", line.color.key) : Infinity;
-    const capStock = (left===Infinity && capColor===Infinity) ? newQty : Math.min((left===Infinity?newQty:left), (capColor===Infinity?newQty:capColor));
-    existing.qty=capStock;
-  } else { cart.push(line); }
+  if(existing){
+    const newQty = existing.qty + line.qty;
+    const cap = (leftSizeColor===Infinity) ? newQty : Math.min(newQty, leftSizeColor);
+    existing.qty = cap;
+  } else {
+    cart.push(line);
+  }
   if(line.size){ localStorage.setItem('hh_size_'+line.id, line.size); }
   saveCart(); renderCart();
   showToast(`Added ${line.name}${line.size?' '+line.size:''}${line.personalize?' + personalised':''}${line.color?' • '+line.color.name:''} — Undo`, ()=>{ removeFromCart(key); lastAddedKey=null; showToast('Removed'); });
@@ -512,7 +550,7 @@ function updateFab(){ const {subtotal}=computeTotals(); document.getElementById(
 /* Stepper template */
 function stepperHTML(initial=1){ return `<div class="stepper" data-stepper><button type="button" class="dec" aria-label="Decrease quantity">−</button><input type="number" class="qty" min="1" value="${initial}"><button type="button" class="inc" aria-label="Increase quantity">+</button></div>`; }
 
-/* Render products (renders immediately) */
+/* Render products */
 function renderProducts(){
   grid.innerHTML='';
   PRODUCTS.forEach(p=>{
@@ -538,54 +576,83 @@ function renderProducts(){
         </div>
         <div class="row"><button class="btn btn-accent btn-block add" ${soldOut?'disabled':''}>${soldOut?'Sold out':'Add to Basket'}</button></div>
       </div>`;
-    if(p.sizes){ const sel=card.querySelector('.size'); const saved=localStorage.getItem('hh_size_'+p.id); if(saved && [...sel.options].some(o=>o.value===saved && !o.disabled)) sel.value=saved; }
 
+    // SWATCH logic
     const swatchWrap = card.querySelector('[data-swatches]');
     if(swatchWrap){
       swatchWrap.addEventListener('click', (e)=>{
         const el = e.target.closest('.swatch'); if(!el || el.classList.contains('disabled')) return;
         const active = swatchWrap.querySelector('.swatch.active');
-        if(active === el){ el.classList.remove('active'); return; }
-        if(active) active.classList.remove('active');
-        el.classList.add('active');
+        if(active === el){ el.classList.remove('active'); } else { if(active) active.classList.remove('active'); el.classList.add('active'); }
+        refreshColourSwatches(card, p);
+        refreshSizeOptions(card, p);
+        refreshOneSizeBadge(card, p);
       });
     }
 
-    refreshColourSwatches(card, p);
+    // Size change should recompute swatch enabled state
     card.querySelector('.size')?.addEventListener('change', ()=> refreshColourSwatches(card, p));
 
+    // Add handler
     let adding=false;
     card.querySelector('.add').onclick=()=>{
       if(adding) return; adding=true;
+
       const sizeEl=card.querySelector('.size');
       const size=p.sizes?(sizeEl.value||''):'';
       if(p.sizes && !size){ alert('Please choose a size'); sizeEl.classList.add('error'); adding=false; return; }
       sizeEl.classList.remove('error');
-      const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
-      const left = qtyFor(p.id, p.sizes?size:''); if(!(left===Infinity) && qty>left){ alert(`Only ${left} left for that size.`); adding=false; return; }
-      const selectedQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
-      const personalize = !!selectedQuote; const unitPrice = p.price + (personalize ? 2.50 : 0);
-      const color = getSelectedColour(swatchWrap);
 
-      if(color && hasColorInventory(p.id)){
+      const qty=Math.max(1, parseInt(card.querySelector('.qty').value||'1',10));
+      const swatchWrap = card.querySelector('[data-swatches]');
+      let color = getSelectedColour(swatchWrap);
+
+      if(hasColorInventory(p.id)){
+        // if no colour picked, auto-pick first with stock for that size
+        if(!color){
+          const rec = INVENTORY[p.id]; const keys = Object.keys(rec.COLORS||{});
+          const candidate = keys.find(k => qtyFor(p.id, p.sizes?size:'', k) > 0);
+          if(candidate){
+            const cfg = COLOR_OPTIONS.find(c=>c.key===candidate) || {key:candidate, name:candidate, hex:'#000'};
+            color = {key:cfg.key, name:cfg.name, hex:cfg.hex};
+          }
+        }
+        if(!color){ alert('Please choose a colour'); adding=false; return; }
         const leftColor = qtyForColor(p.id, p.sizes?size:'', color.key);
         if(leftColor <= 0){ alert('That colour is out of stock for the selected size.'); adding=false; return; }
         if(!(leftColor===Infinity) && qty>leftColor){ alert(`Only ${leftColor} left for that colour/size.`); adding=false; return; }
       }
 
+      const selectedQuote = p.personalize ? (card.querySelector('.quote-select')?.value || '') : '';
+      const personalize = !!selectedQuote; const unitPrice = p.price + (personalize ? 2.50 : 0);
+
       addToCart({id:p.id,name:p.name,price:unitPrice,size,qty,personalize,quote:selectedQuote,color});
       setTimeout(()=>adding=false,300);
     };
+
+    // initial refreshes
+    refreshColourSwatches(card, p);
+    if(p.sizes) refreshSizeOptions(card, p); else addOneSizeBadgeNode(card, p);
+
     grid.appendChild(card);
   });
 }
 
-/* Build sizes using any inventory already present (but fine if empty) */
+function addOneSizeBadgeNode(cardEl, product){
+  const host = document.createElement('div');
+  host.className = 'muted';
+  host.setAttribute('data-onesize-badge','');
+  const row = cardEl.querySelector('.row');
+  row.insertAdjacentElement('afterend', host);
+  refreshOneSizeBadge(cardEl, product);
+}
+
+/* Build sizes — placeholder; options are built per colour later */
 function buildSizeControl(p){
-  if(!p.sizes||p.sizes.length===0){ const left=qtyFor(p.id,''); const badge=(left===Infinity)?'':`<span class="muted">Stock: ${left}</span>`;
-    return `<input type="hidden" class="size"><span>${badge}</span>`; }
-  const opts=p.sizes.map(sz=>{ const left=qtyFor(p.id,sz); const label=`${sz} ${left===Infinity?'':'(' + left + ')'}`; const disabled=(left<=0)?'disabled':''; return `<option value="${sz}" ${disabled}>${label}${left<=0?' — Sold out':''}</option>`; }).join('');
-  return `<select class="size"><option value="">Size</option>${opts}</select>`;
+  if(!p.sizes||p.sizes.length===0){
+    return `<input type="hidden" class="size">`;
+  }
+  return `<select class="size"><option value="">Size</option></select>`;
 }
 
 /* Render cart */
@@ -597,7 +664,7 @@ function renderCart(){
     const row=document.createElement('div');
     row.className='cart-line';
     row.dataset.key=key;
-    const left = qtyFor(l.id, l.size||'');
+    const left = qtyFor(l.id, l.size||'', l.color?.key);
     const capNote = (left!==Infinity) ? `<span class="muted"> (Max ${left})</span>` : '';
     const colorBadge = l.color ? `<div class="color-chip"><span class="color-dot" style="background:${l.color.hex}"></span>${l.color.name}</div>` : '';
     row.innerHTML=`
@@ -632,7 +699,7 @@ function renderCart(){
   queueMicrotask(updateScrollHint);
 }
 
-/* Stepper delegation */
+/* Stepper delegation (now colour-aware for caps) */
 document.addEventListener('click',(e)=>{
   const btn=e.target.closest('.stepper .inc, .stepper .dec'); if(!btn) return;
   const wrap=btn.closest('.stepper'); const input=wrap.querySelector('input.qty');
@@ -642,8 +709,11 @@ document.addEventListener('click',(e)=>{
   if(row){
     const key=row.dataset.key;
     const line=cart.find(l=> lineKey(l)===key);
-    if(line){ const left = qtyFor(line.id, line.size||''); if(!(left===Infinity)) val = Math.min(val, left);
-      line.qty=val; input.value=String(val); saveCart(); renderCart(); }
+    if(line){
+      const left = qtyFor(line.id, line.size||'', line.color?.key);
+      if(!(left===Infinity)) val = Math.min(val, left);
+      line.qty=val; input.value=String(val); saveCart(); renderCart();
+    }
   } else { input.value=String(val); }
 },{passive:false});
 
@@ -653,8 +723,11 @@ document.addEventListener('input',(e)=>{
   const row=input.closest('.cart-line'); const key=row?.dataset?.key;
   const line=cart.find(l=> lineKey(l)===key);
   let val=Math.max(1, parseInt(input.value||'1',10));
-  if(line){ const left = qtyFor(line.id, line.size||''); if(!(left===Infinity)) val = Math.min(val, left);
-    line.qty=val; input.value=String(val); saveCart(); renderCart(); }
+  if(line){
+    const left = qtyFor(line.id, line.size||'', line.color?.key);
+    if(!(left===Infinity)) val = Math.min(val, left);
+    line.qty=val; input.value=String(val); saveCart(); renderCart();
+  }
 });
 
 /* Scroll lock */
@@ -728,10 +801,10 @@ function buildOrderText(orderNumber){
   const c=getFormData(); const {subtotal,shipping,discountValue,grand}=computeTotals();
   const lines=cart.map(l =>
     `${l.name}${l.size?` (${l.size})`:''}${l.personalize?' + Personalised':''}${l.color?` — ${l.color.name}`:''} x ${l.qty} — ${currency(l.price*l.qty)}${l.quote?`\n   • Quote: "${l.quote}"`:''}`
-  ).join('\\n');
-  const address=`${c.firstName} ${c.lastName}\\n${c.addr1}\\n${c.addr2||''}\\n${c.city}${c.county?`, ${c.county}`:''}\\n${c.postcode}\\n${c.country}`;
-  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\\n`:'';
-  const deliverySection=`Delivery method: ${getDeliveryLabel()}\\n`;
+  ).join('\n');
+  const address=`${c.firstName} ${c.lastName}\n${c.addr1}\n${c.addr2||''}\n${c.city}${c.county?`, ${c.county}`:''}\n${c.postcode}\n${c.country}`;
+  const discSection=discountValue>0?`Discount: -${currency(discountValue)}\n`:'';
+  const deliverySection=`Delivery method: ${getDeliveryLabel()}\n`;
   return `ORDER SUMMARY — HealthAndHIT
 Order No: ${orderNumber}
 ----------------------------
@@ -748,7 +821,7 @@ Phone: ${c.phone||'-'}
 Address:
 ${address}
 
-${c.notes?`Notes:\\n${c.notes}\\n`:''}
+${c.notes?`Notes:\n${c.notes}\n`:''}
 (Please reply to confirm.)`;
 }
 
@@ -799,7 +872,7 @@ function renderPayPalButtons(){
   }).render('#paypalButtons');
 }
 
-/* Email flow (patched to highlight + shake T&Cs on click if not ticked) */
+/* Email flow */
 const emailBtn=document.getElementById('emailOrderBtn');
 const ackBox=document.getElementById('orderAcknowledge');
 
@@ -852,12 +925,12 @@ function confettiBurst(){
     if(++t<120) requestAnimationFrame(step); else ctx.clearRect(0,0,w,h); })();
 }
 
-/* Init: render immediately, then try to fetch inventory in background */
+/* Init */
 function init(){
   try{
     renderProducts(); renderCart(); updateFab(); restoreForm();
   }catch(e){ console.error('Initial render error', e); }
-  safeLoadInventory(); // async, doesn't block
+  safeLoadInventory(); // async
   updateScrollHint();
 }
 init();

@@ -1,17 +1,128 @@
 {
-  "tee":     { "S": 0, "M": 7, "L": 16, "XL": 2, "2XL": 1 },
-  "vest":    { "S": 0, "M": 1, "L": 4, "XL": 1 },
-  "jumper":  { "S": 0, "M": 0, "L": 0, "XL": 0 },
-  "hoodie":  { "S": 0, "M": 0, "L": 0, "XL": 0 },
-  "cap":     { "ONESIZE": 10 },
-  "subcap":  { "ONESIZE": 3 },
-  "mug":     { "ONESIZE": 12 },
-  "bottle":  { "ONESIZE": 6 },
-  "keyring": { "ONESIZE": 25 },
-  "gymbag":  { "ONESIZE": 6 },
-  "towel":   { "ONESIZE": 8 },
-  "mystery": { "ONESIZE": 3 },
-
-  "w_tshirt":{ "S": 0, "M": 0, "L": 1, "XL": 2, "2XL": 0 },
-  "w_vest":  { "S": 0, "M": 1, "L": 3, "XL": 4 }
+  "tee": {
+    "COLORS": {
+      "black": {
+        "S": 5,
+        "M": 2,
+        "L": 0,
+        "XL": 3,
+        "2XL": 0
+      },
+      "white": {
+        "S": 5,
+        "M": 2,
+        "L": 0,
+        "XL": 3,
+        "2XL": 0
+      },
+      "red": {
+        "S": 5,
+        "M": 2,
+        "L": 0,
+        "XL": 3,
+        "2XL": 0
+      },
+      "pink": {
+        "S": 5,
+        "M": 2,
+        "L": 0,
+        "XL": 3,
+        "2XL": 0
+      },
+      "blue": {
+        "S": 5,
+        "M": 2,
+        "L": 0,
+        "XL": 3,
+        "2XL": 0
+      }
+    }
+  },
+  "vest": {
+    "COLORS": {
+      "black": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 2
+      },
+      "white": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 2
+      },
+      "red": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 2
+      },
+      "pink": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 2
+      },
+      "blue": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 2
+      }
+    }
+  },
+  "hoodie": {
+    "COLORS": {
+      "black": {
+        "S": 4,
+        "M": 3,
+        "L": 1,
+        "XL": 0
+      },
+      "white": {
+        "S": 4,
+        "M": 3,
+        "L": 1,
+        "XL": 0
+      },
+      "red": {
+        "S": 4,
+        "M": 3,
+        "L": 1,
+        "XL": 0
+      },
+      "pink": {
+        "S": 4,
+        "M": 3,
+        "L": 1,
+        "XL": 0
+      },
+      "blue": {
+        "S": 4,
+        "M": 3,
+        "L": 1,
+        "XL": 0
+      }
+    }
+  },
+  "cap": {
+    "COLORS": {
+      "black": {
+        "ONESIZE": 12
+      },
+      "white": {
+        "ONESIZE": 12
+      },
+      "red": {
+        "ONESIZE": 12
+      },
+      "pink": {
+        "ONESIZE": 12
+      },
+      "blue": {
+        "ONESIZE": 12
+      }
+    }
+  }
 }
